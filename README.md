@@ -1,2 +1,684 @@
 # ESPHome-Duepi
-An script for the ESPHome flashed ESP devices to create a climate sensor in Home Assistent for DUEPI controlled pellet stoves 
+The Duepi EVO climate platform is a reverse engineered implementation of the app which is controlling Pellet stove heaters using a Duepi Evo Wifi module. With this module it is possible to control your pellet stove with HomeAssistant. This is in no way associated with the company Duepi and comes with no guarantees or warranty. Use at your own risk.
+
+Prerequisites
+Hardware
+Wemos D1 flashed with ESPHome. This device has a 5V input and integrated CH340 for easy flashing. 
+
+Functionality
+Control target temperature.
+Control system on/off.
+Control fan speed (quite, low, middel, medium, high)
+
+Configuration
+
+Paste the following code in the ESPHome yaml file:
+
+ esphome:
+  name: pelletkachel
+  friendly_name: Pellet Kachel
+  includes:
+    - uart_read_line_sensor.h
+  on_boot:
+    - priority: -10
+      then: 
+        - lambda: |- 
+            id(uart_send) = 0;
+            id(room_temp_stove).publish_state(17.0);
+            id(power_level).publish_state(1);
+            id(pellet_speed).publish_state(1);
+            id(fan_mode) = 1;
+            id(flu_gas_temp).publish_state(17.0);
+            id(exh_fan_speed).publish_state(0);
+            id(burner_status).publish_state("All OK, startup");
+            id(Stove).target_temperature = 21.0;
+
+esp8266:
+  board: d1
+
+# Enable logging
+logger:
+  level: VERBOSE #makes uart stream available in esphome logstream
+  baud_rate: 0 #disable logging over uart
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret encryption_key7
+
+ota:
+  - platform: esphome
+    password: "f2e397444f340a061ce03628e268a770"
+
+wifi:
+  networks:
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+    - ssid: !secret wifi_ssid-1
+      password: !secret wifi_password-1
+    - ssid: !secret wifi_ssid2-5g
+      password: !secret wifi_password2-5g
+    
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Pelletkachel Fallback Hotspot"
+    password: "Eb6sEuCPV0KX"
+
+captive_portal:
+
+globals:
+   - id: uart_send
+     type: int
+     restore_value: no
+     initial_value: '0'
+   - id: fan_mode
+     type: int
+     restore_value: no
+     initial_value: '1'
+   - id: uartcode 
+     type: std::string
+     restore_value: no
+     initial_value: "" 
+
+sensor:
+  - platform: template
+    name: "error code"
+    id: error_code
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "exhaust fan speed"
+    id: exh_fan_speed
+    device_class: "speed"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "flu gas temperature"
+    id: flu_gas_temp
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "pellet speed"
+    id: pellet_speed
+    accuracy_decimals: 0
+    device_class: "speed"
+    filters:
+      - round: 0
+  - platform: template
+    name: "power level"
+    id: power_level
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "Room Temperature"
+    id: room_temp_stove
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 60
+          send_every: 15
+          send_first_at: 1  
+      - round: 2
+      
+switch:
+  - platform: template
+    name: "Reset"
+    id: reset_sw
+    icon: "mdi:restart"
+    turn_on_action: #REMOTE_RESET
+      - wait_until:
+          condition:
+            lambda: 'return (id(uart_send) == 0);'
+          timeout: 1s 
+      - lambda: id(uart_send) = 9;
+      - uart.write: "\x1bRD60005C&"
+      - wait_until:
+          condition:
+            lambda: 'return (id(uart_send) == 0);'
+          timeout: 100ms
+      - lambda: id(debug).publish_state("Reset pellet stove s6ful");
+      - switch.turn_off: reset_sw
+
+climate:
+  - platform: thermostat
+    name: "Pellet kachel"
+    id: Stove
+    sensor: room_temp_stove
+    min_idle_time: 1s
+    min_heating_off_time: 1s
+    min_heating_run_time: 300s
+    min_fan_mode_switching_time: 1s
+    heat_action: 
+        - lambda: id(debug).publish_state("Thermostat heat action");
+    idle_action:
+        - lambda: id(debug).publish_state("Thermostat idle action");
+    target_temperature_change_action: 
+    # SET_TEMPERATURE 
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: id(uart_send) = 9;  
+        #id(debug).publish_state("SET_TEMPERATURE");
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 15);'
+            then:
+              - uart.write: "\x1bRF20F05A&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 16);'
+            then:
+              - uart.write: "\x1bRF21005B&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 17);'
+            then:
+              - uart.write: "\x1bRF21105C&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 18);'
+            then:
+              - uart.write: "\x1bRF21205D&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 19);'
+            then:
+              - uart.write: "\x1bRF21305E&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 20);'
+            then:
+              - uart.write: "\x1bRF21405F&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 21);'
+            then:
+              - uart.write: "\x1bRF215060&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 22);'
+            then:
+              - uart.write: "\x1bRF216061&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 23);'
+            then:
+              - uart.write: "\x1bRF217062&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 24);'
+            then:
+              - uart.write: "\x1bRF218063&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 25);'
+            then:
+              - uart.write: "\x1bRF219064&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 26);'
+            then:
+              - uart.write: "\x1bRF21A065&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 27);'
+            then:
+              - uart.write: "\x1bRF21B066&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 28);'
+            then:
+              - uart.write: "\x1bRF21C067&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 29);'
+            then:
+              - uart.write: "\x1bRF21D068&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 30);'
+            then:
+              - uart.write: "\x1bRF21E069&"
+        - if: 
+            condition:
+              lambda: 'return (id(Stove).target_temperature < 15 && id(Stove).target_temperature > 30);'
+            then:
+              - uart.write: "\x1bRF215060&"
+              - lambda: id(debug).publish_state("Temperature out of range (15-30). Set  to 21");
+              - climate.control:
+                  id: Stove
+                  target_temperature: 21.0  
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove temp change failed");
+    fan_mode_quiet_action:    
+      then:
+        - lambda: id(fan_mode) = 1;
+    fan_mode_low_action:
+      then:
+        - lambda: id(fan_mode) = 2;
+    fan_mode_middle_action:
+      then:
+        - lambda: id(fan_mode) = 3;
+    fan_mode_medium_action:
+      then:
+        - lambda: id(fan_mode) = 4;
+    fan_mode_high_action:
+      then:
+        - lambda: id(fan_mode) = 5;
+    heat_mode: 
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: |-
+            id(debug).publish_state("Heat On");
+            id(uart_send) = 9;
+        - uart.write: "\x1bRF001059&"
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove failed Heat On");
+    off_mode:
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: |- 
+            id(debug).publish_state("Heat OFF");
+            id(uart_send) = 9;
+        - uart.write: "\x1bRF000058&"
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove failed Heat Off");
+    visual:
+      min_temperature: 15
+      max_temperature: 30
+      temperature_step:
+        target_temperature: 1.0
+        current_temperature: 0.1
+
+# constants nog ongebruikt
+#SET_AUGERCOR = "\x1bRD50005A&"
+#SET_EXTRACTORCOR = "\x1bRD50005B&"
+#SET_PELLETCOR = "\x1bRD50005B&"
+
+
+# Define UART pinout RX: GPIO-3 (D9) & TX: GPIO-1 (D10)
+uart:
+  id: uart_bus
+  tx_pin: 1
+  rx_pin: 3
+  #8N1 RX Receive Timeout (mSec): 5, RX buffer size (bytes):	256
+  baud_rate: 115200  
+#  debug:
+#    direction: BOTH
+#    dummy_receiver: true
+#    after:
+#      delimiter: "\n"
+#    sequence:
+#      - lambda: UARTDebug::log_string(direction, bytes);
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      # Every minute
+      - seconds: /10
+        then:
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 1s
+          - lambda: id(uart_send) = 1;
+          - uart.write: "\x1bRD90005f&" #get_status
+#          - lambda: id(debug).publish_state("get_status");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 2);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 2;
+          - uart.write: "\x1bRD100057&" #GET_TEMPERATURE
+#          - lambda: id(debug).publish_state("GET_TEMPERATURE");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - if:
+              condition:
+                lambda: 'return (id(burner_status).state != "Off");'
+              then:
+                - lambda: id(uart_send) = 3;
+                - uart.write: "\x1bRD300059&" #GET_POWERLEVEL
+#                - lambda: id(debug).publish_state("GET_POWERLEVEL"  );
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 1);'
+                    timeout: 100ms
+                - if: 
+                    condition:
+                      lambda: 'return (id(pellet_speed).state != id(fan_mode) && id(burner_status).state != "Off" && id(burner_status).state != "Cooling down");' 
+                    then:
+                      - lambda: id(uart_send) = 9;
+                      - lambda: id(pellet_speed).publish_state(id(fan_mode)); 
+                      - if: 
+                          condition:
+                            lambda: 'return (id(fan_mode) == 1);'
+                          then:
+                            - uart.write: "\x1bRF001059&"
+                      - if:
+                          condition:
+                            lambda: 'return (id(fan_mode) == 2);'
+                          then:
+                          - uart.write: "\x1bRF00205A&"
+                      - if: 
+                          condition:
+                            lambda: 'return (id(fan_mode) == 3);'
+                          then:
+                            - uart.write: "\x1bRF00305B&"
+                      - if: 
+                          condition:
+                            lambda: 'return (id(fan_mode) == 4);'
+                          then:
+                            - uart.write: "\x1bRF00405C&"
+                      - if: 
+                          condition:
+                            lambda: 'return (id(fan_mode) == 5);'
+                          then:
+                            - uart.write: "\x1bRF00505D&"
+                      - wait_until:
+                          condition:
+                            lambda: 'return (id(uart_send) == 0);'
+                          timeout: 100ms
+                      - if: 
+                          condition:
+                            lambda: 'return (id(debug).state != "OK");'
+                          then:
+                            - lambda: id(debug).publish_state("Pelletspeed change failed");  
+                    else: 
+                      - lambda: id(uart_send) = 4;
+                      - uart.write: "\x1bRD40005A&" #GET_PELLETSPEED
+#                     - lambda: id(debug).publish_state("GET_PELLETSPEED");
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 1);'
+                    timeout: 100ms
+          - lambda: id(uart_send) = 5;
+          - uart.write: "\x1bRD000056&" #GET_FLUGASTEMP
+#          - lambda: id(debug).publish_state("GET_FLUGASTEMP");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 6;
+          - uart.write: "\x1bREF0006D&" #GET_EXHFANSPEED
+#          - lambda: id(debug).publish_state("GET_EXHFANSPEED");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 7;
+          - uart.write: "\x1bRDA00067&" #GET_ERRORSTATE
+#          - lambda: id(debug).publish_state("GET_ERRORSTATE");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 8;
+          - uart.write: "\x1bRC60005B&" #GET_SETPOINT 
+#          - lambda: id(debug).publish_state("GET_SETPOINT");
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+
+text_sensor:
+  - platform: template
+    name: "burner status"
+    id: "burner_status"
+    update_interval: 10s 
+  - platform: template
+    name: "debug"
+    id: "debug" 
+    update_interval: 10s
+  - platform: custom
+    lambda: |-
+      auto my_custom_sensor = new UartReadLineSensor(id(uart_bus));
+      App.register_component(my_custom_sensor);
+      return {my_custom_sensor};
+    text_sensors:
+      id: "uart_readline"
+      on_value:
+        then:
+          - lambda: |-
+              std::string data_from_server = x.c_str();
+              const int STATE_ECO = 0x10000000;
+              const int STATE_CLEAN = 0x04000000;
+              const int STATE_COOL = 0x08000000;
+              const int STATE_OFF = 0x00000020;
+              const int STATE_ON = 0x02000000;
+              const int STATE_START = 0x01000000;
+              const int STATE_ACK = 0x00000020;
+              std::string status;
+              switch(id(uart_send)) {
+                case 1: {
+                  id(uart_send) = 2;
+                  int currentstate = std::stoi(data_from_server.substr(1, 8), nullptr, 16);
+                  int kachel_aan = 0;
+                  if (STATE_START & currentstate) {
+                    status = "Ignition starting";
+                    kachel_aan = 1;
+                  } else if (STATE_ON & currentstate) {
+                    status = "Flame On";
+                    kachel_aan = 1;
+                  } else if (STATE_CLEAN & currentstate) {
+                    status = "Cleaning";
+                    kachel_aan = 1;
+                  } else if (STATE_ECO & currentstate) {
+                    status = "Eco Idle";
+                    kachel_aan = 1;
+                  } else if (STATE_COOL & currentstate) {
+                    status = "Cooling down";
+                  } else if (STATE_OFF & currentstate) {
+                    status = "Off";
+                  } else {
+                    status = "Unknown state "+ std::to_string(currentstate);
+                  }
+                  id(burner_status).publish_state(status);
+                  if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
+                    id(Stove).make_call().set_mode("OFF").perform();
+                    id(debug).publish_state("Off, stove<>climate");
+                  } else if (kachel_aan == 1 && id(Stove).mode == CLIMATE_MODE_OFF) {
+                    id(Stove).make_call().set_mode("HEAT").perform();
+                    id(debug).publish_state("HEAT, stove<>climate");
+                  }
+                  break;
+                }
+                case 2: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    id(room_temp_stove).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16)/10.0);
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 3: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    id(power_level).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 4: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    id(pellet_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                    id(fan_mode) = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                     if (id(fan_mode) == 1) {
+                      id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform();
+                    } else if (id(fan_mode) == 2) {
+                      id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform();
+                    } else if (id(fan_mode) == 3) {  
+                      id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform();
+                    } else if (id(fan_mode) == 4) {
+                      id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform();
+                    } else if (id(fan_mode) == 5) {
+                      id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform();
+                    }
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 5: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    id(flu_gas_temp).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 6: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    id(exh_fan_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16)*10);
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 7: {
+                  id(uart_send) = 1;
+                  if (data_from_server.length() == 9) {
+                    int err_code = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                    id(error_code).publish_state(err_code);
+                    switch(err_code) {
+                      case 0: {
+                        break;
+                        }
+                      case 1: {
+                        id(burner_status).publish_state("Ignition failure");
+                        break;
+                        }
+                      case 2: {
+                        id(burner_status).publish_state("Defective suction");
+                        break;
+                        }
+                      case 3: {
+                        id(burner_status).publish_state("Insufficient air intake");
+                        break;
+                        }
+                      case 4: {
+                        id(burner_status).publish_state("Water temperature");
+                        break;
+                        }
+                      case 5: {
+                        id(burner_status).publish_state("Out of pellets");
+                        break;
+                        }
+                      case 6: {
+                        id(burner_status).publish_state("Defective pressure switch");
+                        break;
+                        }
+                      case 7: {
+                        id(burner_status).publish_state("Unknown");
+                        break;
+                        }
+                      case 8: {
+                        id(burner_status).publish_state("No current");
+                        break;
+                        }
+                      case 9: {
+                        id(burner_status).publish_state("Exhaust motor failure");
+                        break;
+                        }
+                      case 10: {
+                        id(burner_status).publish_state("Card surge");
+                        break;
+                        }
+                      case 11: {
+                        id(burner_status).publish_state("Date expired");
+                        break;
+                        }
+                      case 12: {
+                        id(burner_status).publish_state("Unknown");
+                        break;
+                        }
+                      case 13: {
+                        id(burner_status).publish_state("Suction regulating sensor error");
+                        break;
+                        }
+                      case 14: {
+                        id(burner_status).publish_state("Overheating");
+                        break;
+                        }
+                      default: id(burner_status).publish_state("Unknown Error " + std::to_string(err_code));
+                    }
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 8: {
+                  id(uart_send) = 0;
+                  if (data_from_server.length() == 9) {
+                    id(Stove).target_temperature = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  } else {
+                    id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
+                  }
+                  break;
+                }
+                case 9: {
+                  id(uart_send) = 0;
+                  int current_state = std::stoi(data_from_server.substr(1, 8), nullptr, 16);
+                  if (STATE_ACK & current_state) {
+                    status = "OK";
+                  } else {
+                    status = "Unknown return value  "+ data_from_server; 
+                  }
+                  id(debug).publish_state(status);
+                  break;
+                }
+                default: id(debug).publish_state("Unknown UART command");
+              } 
+
+Confirmed working with:
+  Duroflame Rembrand
+
+
+Huge thanks go to pascal_bornat@hotmail.com who found the strings to control the EVO board and interfaced it to Jeedom
+
+Buy Me A Coffee! 
