@@ -38,10 +38,10 @@ Compile and install on the Wemos. Connect the correct pins of the Wemos to the D
 ![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)
 ![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)
 ![image](https://github.com/user-attachments/assets/f2125298-5b24-4814-8c65-a8f1f51754c9)
-tx_pin: GPIO-01
-rx_pin: GPIO-03
-GND
-5V
+tx_pin: GPIO-01, 
+rx_pin: GPIO-03, 
+GND-pin, 
+5V-pin 
 
 Confirmed working with:
   Duroflame Rembrand
