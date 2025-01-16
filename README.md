@@ -20,4 +20,5 @@ Confirmed working with:
 
 Huge thanks go to pascal_bornat@hotmail.com who found the strings to control the EVO board and interfaced it to Jeedom
 
-Buy Me A Coffee! 
+Buy Me A Coffee! https://buymeacoffee.com/mvroosmalen
+
