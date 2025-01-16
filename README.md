@@ -11,8 +11,8 @@ Control system on/off.
 Control fan speed (quite, low, middel, medium, high)
 
 Configuration
-
-Paste the following code in the ESPHome yaml file:
+download and store uart_read_line_sensor.h in the ESPHome directory (/homeassistant/esphome)
+Paste pelletstove.yaml in ESPHome flashed device
 
 Confirmed working with:
   Duroflame Rembrand
