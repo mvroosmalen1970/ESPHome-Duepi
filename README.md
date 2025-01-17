@@ -47,6 +47,6 @@ Confirmed working with:
   Duroflame Rembrand  
 
 
-Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** intergation, which I used to create this solution!
+Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** integration, which I used to create this solution!
 
 [Buy Me A Coffee](https://buymeacoffee.com/mvroosmalen)! :coffee:
