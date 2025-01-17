@@ -151,6 +151,21 @@ climate:
             timeout: 1s
         - lambda: id(uart_send) = 9;  
         #id(debug).publish_state("SET_TEMPERATURE");
+        - if:
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 12);'
+            then:
+              - uart.write: "\x1bRF20C06D&"
+        - if:
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 13);'
+            then:
+              - uart.write: "\x1bRF20D06E&"
+        - if:
+            condition:
+              lambda: 'return (id(Stove).target_temperature == 14);'
+            then:
+              - uart.write: "\x1bRF20E06F&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 15);'
@@ -233,10 +248,10 @@ climate:
               - uart.write: "\x1bRF21E069&"
         - if: 
             condition:
-              lambda: 'return (id(Stove).target_temperature < 15 && id(Stove).target_temperature > 30);'
+              lambda: 'return (id(Stove).target_temperature < 12 && id(Stove).target_temperature > 30);'
             then:
               - uart.write: "\x1bRF215060&"
-              - lambda: id(debug).publish_state("Temperature out of range (15-30). Set  to 21");
+              - lambda: id(debug).publish_state("Temperature out of range (12-30). Set  to 21");
               - climate.control:
                   id: Stove
                   target_temperature: 21.0  
