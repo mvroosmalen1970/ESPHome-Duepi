@@ -225,27 +225,27 @@ climate:
             condition:
               lambda: 'return (id(Stove).target_temperature == 26);'
             then:
-              - uart.write: "\x1bRF21A065&"
+              - uart.write: "\x1bRF21A06C&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 27);'
             then:
-              - uart.write: "\x1bRF21B066&"
+              - uart.write: "\x1bRF21B06D&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 28);'
             then:
-              - uart.write: "\x1bRF21C067&"
+              - uart.write: "\x1bRF21C06E&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 29);'
             then:
-              - uart.write: "\x1bRF21D068&"
+              - uart.write: "\x1bRF21D06F&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 30);'
             then:
-              - uart.write: "\x1bRF21E069&"
+              - uart.write: "\x1bRF21E070&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature < 12 && id(Stove).target_temperature > 30);'
