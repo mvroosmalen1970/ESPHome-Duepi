@@ -654,7 +654,9 @@ text_sensor:
                   if (data_from_server.length() == 9) {
                     int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                     if (temp!=0 && temp>11 && temp <31) {
-                      id(Stove).target_temperature = temp
+                      id(Stove).target_temperature = temp;
+                    } else {
+                      id(debug).publish_state("Error temperature out of range :"+temp);
                     }
                   } else {
                     id(debug).publish_state("Error length return string <> 9 :"+data_from_server);
