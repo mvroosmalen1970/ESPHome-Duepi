@@ -45,6 +45,7 @@ GND-pin
 
 Confirmed working with:  
   Duroflame Rembrand  
+  Qlima Viola 85 S-Line
 
 
 Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** integration, which I used to create this solution!
