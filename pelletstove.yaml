@@ -170,7 +170,7 @@ climate:
             condition:
               lambda: 'return (id(Stove).target_temperature == 15);'
             then:
-              - uart.write: "\x1bRF20F05A&"
+              - uart.write: "\x1bRF20F070&"
         - if: 
             condition:
               lambda: 'return (id(Stove).target_temperature == 16);'
