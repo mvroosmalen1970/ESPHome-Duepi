@@ -32,20 +32,15 @@ script:
             id: uart_bus
             data: !lambda |-
               std::string str;
-              if (command_in.length() == 4) {
-                unsigned int checksum = 0;
-                command_in = "R"+command_in+"0";
-                for (size_t i = 0; i < command_in.size(); i++) {
-                  checksum += static_cast<unsigned char>(command_in[i]);
-                }
-                checksum = checksum & 0xFF;
-                str=str_sprintf("%X", checksum); 
-                str="\x1b" + command_in + str + "&";
-                id(debug).publish_state("Custom command: "+str+" send.");
-              } else {
-                id(debug).publish_state("Invalid command length: "+std::to_string(command_in.length())+" get stove status command send.");
-                str="\x1bRD90005f&"; 
-              }  
+              unsigned int checksum = 0;
+              command_in = "R"+command_in+"0";
+              for (size_t i = 0; i < command_in.size(); i++) {
+                checksum += static_cast<unsigned char>(command_in[i]);
+              }
+              checksum = checksum & 0xFF;
+              str=str_sprintf("%X", checksum); 
+              str="\x1b" + command_in + str + "&";
+              id(debug).publish_state("Custom command: "+str+" send."); 
               std::vector<uint8_t> vec(str.begin(), str.end());
               return vec;
               
