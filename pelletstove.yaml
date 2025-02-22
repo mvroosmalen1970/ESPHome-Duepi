@@ -1,8 +1,6 @@
 esphome:
   name: pelletkachel
   friendly_name: Pellet Kachel
-  includes:
-    - uart_read_line_sensor.h
   on_boot:
     - priority: -10
       then: 
@@ -73,22 +71,6 @@ api:
             condition:
               lambda: 'return (id(uart_send) == 0);'
             timeout: 100ms  
-#in HA to activate custom commands for DUEPI stoves: 
-#  1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
-#  2) Create automation: (with action select your esphome......write)      
-#        
-#alias: send command to pellet kachel
-#description: ""
-#triggers:
-#  - trigger: state
-#    entity_id:
-#      - input_text.pelletkachel_command
-#conditions: []
-#actions:
-#  - action: esphome.XXXXXXXXX_write (XXXXXXXX = name of ESPHome yaml)
-#    data:
-#      command: "{{ states('input_text.pelletkachel_command') }}"
-#mode: single
 
 ota:
   - platform: esphome
@@ -117,10 +99,6 @@ globals:
      type: int
      restore_value: no
      initial_value: '1'
-   - id: uartcode 
-     type: std::string
-     restore_value: no
-     initial_value: "" 
 
 sensor:
   - platform: template
@@ -209,7 +187,6 @@ climate:
             condition:
               lambda: 'return (id(uart_send) == 0);'
             timeout: 1s
-        - lambda: id(uart_send) = 9;  
         - script.execute:         
             id: UART_CMD
             command_in: !lambda |-
@@ -226,6 +203,7 @@ climate:
               } else{
                 str="F2" + str;
               }
+              id(uart_send) = 9;
               return str;
         - script.wait: UART_CMD 
         - wait_until:
@@ -513,14 +491,12 @@ time:
               timeout: 1s
           - lambda: id(uart_send) = 1;
           - uart.write: "\x1bRD90005f&" #get_status
-#          - lambda: id(debug).publish_state("get_status");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 2);'
               timeout: 100ms
           - lambda: id(uart_send) = 2;
           - uart.write: "\x1bRD100057&" #GET_TEMPERATURE
-#          - lambda: id(debug).publish_state("GET_TEMPERATURE");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 1);'
@@ -531,7 +507,6 @@ time:
               then:
                 - lambda: id(uart_send) = 3;
                 - uart.write: "\x1bRD300059&" #GET_POWERLEVEL
-#                - lambda: id(debug).publish_state("GET_POWERLEVEL"  );
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 1);'
@@ -563,35 +538,30 @@ time:
                     else: 
                       - lambda: id(uart_send) = 4;
                       - uart.write: "\x1bRD40005A&" #GET_PELLETSPEED
-#                     - lambda: id(debug).publish_state("GET_PELLETSPEED");
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 1);'
                     timeout: 100ms
           - lambda: id(uart_send) = 5;
           - uart.write: "\x1bRD000056&" #GET_FLUGASTEMP
-#          - lambda: id(debug).publish_state("GET_FLUGASTEMP");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 1);'
               timeout: 100ms
           - lambda: id(uart_send) = 6;
           - uart.write: "\x1bREF0006D&" #GET_EXHFANSPEED
-#          - lambda: id(debug).publish_state("GET_EXHFANSPEED");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 1);'
               timeout: 100ms
           - lambda: id(uart_send) = 7;
           - uart.write: "\x1bRDA00067&" #GET_ERRORSTATE
-#          - lambda: id(debug).publish_state("GET_ERRORSTATE");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 1);'
               timeout: 100ms
           - lambda: id(uart_send) = 8;
           - uart.write: "\x1bRC60005B&" #GET_SETPOINT 
-#          - lambda: id(debug).publish_state("GET_SETPOINT");
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 0);'
