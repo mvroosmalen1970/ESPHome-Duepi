@@ -60,7 +60,7 @@ api:
         - lambda: id(uart_send) = 10;
         - script.execute:         
             id: UART_CMD
-            command_in: command
+            command_in: !lambda return command;        
         - script.wait: UART_CMD
         - wait_until:
             condition:
