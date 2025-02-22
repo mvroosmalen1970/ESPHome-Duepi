@@ -24,7 +24,33 @@ esp8266:
 logger:
   level: VERBOSE #makes uart stream available in esphome logstream
   baud_rate: 0 #disable logging over uart
-
+  
+script:
+  - id: UART_CMD
+    parameters:
+      command_in: string
+    then:
+      - uart.write: 
+            id: uart_bus
+            data: !lambda |-
+              std::string str;
+              if (command_in.length() == 4) {
+                unsigned int checksum = 0;
+                command_in = "R"+command_in+"0";
+                for (size_t i = 0; i < command_in.size(); i++) {
+                  checksum += static_cast<unsigned char>(command_in[i]);
+                }
+                checksum = checksum & 0xFF;
+                str=str_sprintf("%X", checksum); 
+                str="\x1b" + command_in + str + "&";
+                id(debug).publish_state("Custom command: "+str+" send.");
+              } else {
+                id(debug).publish_state("Invalid command length: "+std::to_string(command_in.length())+" get stove status command send.");
+                str="\x1bRD90005f&"; 
+              }  
+              std::vector<uint8_t> vec(str.begin(), str.end());
+              return vec;
+              
 # Enable Home Assistant API
 api:
   encryption:
@@ -39,21 +65,10 @@ api:
               lambda: 'return (id(uart_send) == 0);'
             timeout: 1s
         - lambda: id(uart_send) = 10;
-        - uart.write: 
-            id: uart_bus
-            data: !lambda |-
-              unsigned int checksum = 0;
-              command = "R"+command+"0";
-              for (size_t i = 0; i < command.size(); i++) {
-                checksum += static_cast<unsigned char>(command[i]);
-              }
-              std::string str;
-              checksum = checksum & 0xFF;
-              str=str_sprintf("%X", checksum); 
-              str="\x1b" + command + str + "&";
-              id(debug).publish_state("Custom command: "+str+" send.");
-              std::vector<uint8_t> vec(str.begin(), str.end());
-              return vec;
+        - script.execute:         
+            id: UART_CMD
+            command_in: command
+        - script.wait: UART_CMD
         - wait_until:
             condition:
               lambda: 'return (id(uart_send) == 0);'
@@ -195,111 +210,24 @@ climate:
               lambda: 'return (id(uart_send) == 0);'
             timeout: 1s
         - lambda: id(uart_send) = 9;  
-        #id(debug).publish_state("SET_TEMPERATURE");
-        - if:
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 12);'
-            then:
-              - uart.write: "\x1bRF20C06D&"
-        - if:
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 13);'
-            then:
-              - uart.write: "\x1bRF20D06E&"
-        - if:
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 14);'
-            then:
-              - uart.write: "\x1bRF20E06F&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 15);'
-            then:
-              - uart.write: "\x1bRF20F070&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 16);'
-            then:
-              - uart.write: "\x1bRF21005B&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 17);'
-            then:
-              - uart.write: "\x1bRF21105C&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 18);'
-            then:
-              - uart.write: "\x1bRF21205D&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 19);'
-            then:
-              - uart.write: "\x1bRF21305E&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 20);'
-            then:
-              - uart.write: "\x1bRF21405F&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 21);'
-            then:
-              - uart.write: "\x1bRF215060&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 22);'
-            then:
-              - uart.write: "\x1bRF216061&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 23);'
-            then:
-              - uart.write: "\x1bRF217062&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 24);'
-            then:
-              - uart.write: "\x1bRF218063&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 25);'
-            then:
-              - uart.write: "\x1bRF219064&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 26);'
-            then:
-              - uart.write: "\x1bRF21A06C&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 27);'
-            then:
-              - uart.write: "\x1bRF21B06D&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 28);'
-            then:
-              - uart.write: "\x1bRF21C06E&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 29);'
-            then:
-              - uart.write: "\x1bRF21D06F&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature == 30);'
-            then:
-              - uart.write: "\x1bRF21E070&"
-        - if: 
-            condition:
-              lambda: 'return (id(Stove).target_temperature < 12 && id(Stove).target_temperature > 30);'
-            then:
-              - uart.write: "\x1bRF215060&"
-              - lambda: id(debug).publish_state("Temperature out of range (12-30). Set  to 21");
-              - climate.control:
-                  id: Stove
-                  target_temperature: 21.0  
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda |-
+              std::string str;
+              int temp;
+              temp=id(Stove).target_temperature;
+              if (temp<12 || temp>30) {
+                id(debug).publish_state("Temperature out of range (12-30). Set  to 21");
+                temp=21;
+              } 
+              str=str_sprintf("%X", temp); 
+              if (str.length()==1) {
+                str="F20" + str;
+              } else{
+                str="F2" + str;
+              }
+              return str;
+        - script.wait: UART_CMD 
         - wait_until:
             condition:
               lambda: 'return (id(uart_send) == 0);'
@@ -333,7 +261,7 @@ climate:
         - lambda: |-
             id(debug).publish_state("Heat On");
             id(uart_send) = 9;
-        - uart.write: "\x1bRF00605E&"
+        - uart.write: "\x1bRF00605E&" #On auto
         - wait_until:
             condition:
               lambda: 'return (id(uart_send) == 0);'
@@ -612,33 +540,17 @@ time:
                     condition:
                       lambda: 'return (id(pellet_speed).state != id(fan_mode) && id(burner_status).state != "Off" && id(burner_status).state != "Cooling down");' 
                     then:
-                      - lambda: id(uart_send) = 9;
-                      - lambda: id(pellet_speed).publish_state(id(fan_mode)); 
-                      - if: 
-                          condition:
-                            lambda: 'return (id(fan_mode) == 1);'
-                          then:
-                            - uart.write: "\x1bRF001059&"
-                      - if:
-                          condition:
-                            lambda: 'return (id(fan_mode) == 2);'
-                          then:
-                          - uart.write: "\x1bRF00205A&"
-                      - if: 
-                          condition:
-                            lambda: 'return (id(fan_mode) == 3);'
-                          then:
-                            - uart.write: "\x1bRF00305B&"
-                      - if: 
-                          condition:
-                            lambda: 'return (id(fan_mode) == 4);'
-                          then:
-                            - uart.write: "\x1bRF00405C&"
-                      - if: 
-                          condition:
-                            lambda: 'return (id(fan_mode) == 5);'
-                          then:
-                            - uart.write: "\x1bRF00505D&"
+                      - script.execute:         
+                          id: UART_CMD
+                          command_in: !lambda |-
+                            id(uart_send) = 9;
+                            id(pellet_speed).publish_state(id(fan_mode));
+                            std::string str;
+                            int speed;
+                            speed=id(fan_mode);
+                            str="F00" + std::to_string(speed);
+                            return str;
+                      - script.wait: UART_CMD 
                       - wait_until:
                           condition:
                             lambda: 'return (id(uart_send) == 0);'
