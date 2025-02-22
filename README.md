@@ -18,7 +18,6 @@ Reset errors (ie out of pellet)
 Automation possible 
 
 Configuration
-download and store uart_read_line_sensor.h in the ESPHome directory (/homeassistant/esphome)
 Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
 encryption:  
 ..key: <ins>!secret encryption_key</ins>  
@@ -43,6 +42,23 @@ tx_pin: GPIO-01
 rx_pin: GPIO-03  
 GND-pin  
 5V-pin  
+
+In Home assistent to activate custom commands for DUEPI stoves: 
+  1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
+  2) Create automation: (with action select your esphome......write)      
+        
+alias: send command to pellet kachel
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - input_text.pelletkachel_command
+conditions: []
+actions:
+  - action: esphome.XXXXXXXXX_write (XXXXXXXX = name of ESPHome yaml)
+    data:
+      command: "{{ states('input_text.pelletkachel_command') }}"
+mode: single
 
 Confirmed working with:  
   Duroflame Rembrand  
