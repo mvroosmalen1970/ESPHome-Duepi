@@ -44,7 +44,7 @@ script:
                 str=str_sprintf("%X", checksum); 
                 str="\x1b" + command_in + str + "&";
                 id(debug).publish_state("Custom command: "+str+" send.");
-              } else
+              } else {
                 id(debug).publish_state("Invalid command length: "+std::to_string(command_in.length())+" get stove status command send.");
                 str="\x1bRD90005f&"; 
               }  
