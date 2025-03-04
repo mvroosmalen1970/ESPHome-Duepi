@@ -62,7 +62,7 @@ mode: single<br />
 
 Confirmed working with:  
   Duroflame Rembrand  
-  Qlima Viola 85 S-Line
+  Qlima Viola 85 S-Line 
   Artel watt 9
 
 
