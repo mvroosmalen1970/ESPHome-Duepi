@@ -47,18 +47,8 @@ GND-pin
   1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
   2) Create automation: (with action select your esphome......write)      
         
-alias: send command to pellet kachel<br />
-description: "" <br />
-triggers:<br />
-  - trigger: state<br />
-    entity_id:<br />
-      - input_text.pelletkachel_command<br />
-conditions: []<br />
-actions:<br />
-  - action: esphome.**XXXXXXXXX**_write (**XXXXXXXX** = name of ESPHome yaml)<br />
-    data:<br />
-      command: "{{ states('input_text.pelletkachel_command') }}"<br />
-mode: single<br />
+![Image](https://github.com/user-attachments/assets/87e80384-265d-46bc-ab80-0f229b88fc11) <br />
+Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with name of ESPHome yaml<br />
 
 ## Confirmed working with:  
 - Duroflame Rembrand  
