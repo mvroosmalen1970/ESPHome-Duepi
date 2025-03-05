@@ -10,12 +10,14 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - Hardware: Wemos D1 flashed with ESPHome. This device has a 5V input and integrated CH340 for easy flashing. 
 
 ## Functionality
-- Control target temperature.
+- Control target temperature (10-35°C).
 - Control system on/off.
 - Control fan speed (quite, low, middel, medium, high)
 - Reset errors (ie out of pellet)
 - Automation possible
 - Send custom commands
+- PCB temperature (beta, #11)
+- DUEPI firmware detected (beta, #11)
 
 ### Configuration
 Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
@@ -51,9 +53,10 @@ GND-pin
 Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with name of ESPHome yaml<br />
 
 ## Confirmed working with:  
+- Artel watt 9
 - Duroflame Rembrand  
 - Qlima Viola 85 S-Line 
-- Artel watt 9
+
 
 
 Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** integration, which I used to create this solution!
