@@ -94,6 +94,10 @@ globals:
      type: int
      restore_value: no
      initial_value: '1'
+   - id: firmware
+     type: std::string
+     restore_value: no
+     initial_value: '"0000"'
 
 sensor:
   - platform: template
@@ -143,6 +147,14 @@ sensor:
           send_every: 15
           send_first_at: 1  
       - round: 2
+  - platform: template
+    name: "PCB temperature"
+    id: PCB_temp
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
       
 switch:
   - platform: template
@@ -177,7 +189,6 @@ climate:
     idle_action:
         - lambda: id(debug).publish_state("Thermostat idle action");
     target_temperature_change_action: 
-    # SET_TEMPERATURE 
         - wait_until:
             condition:
               lambda: 'return (id(uart_send) == 0);'
@@ -188,17 +199,17 @@ climate:
               std::string str;
               int temp;
               temp=id(Stove).target_temperature;
-              if (temp<12 || temp>30) {
-                id(debug).publish_state("Temperature out of range (12-30). Set  to 21");
+              if (temp<10 || temp>35) {
+                id(debug).publish_state("Temperature out of range (10-35). Set  to 21");
                 temp=21;
               } 
-              str=str_sprintf("%X", temp); 
+              str=str_sprintf("%X", temp);
               if (str.length()==1) {
                 str="F20" + str;
               } else{
                 str="F2" + str;
               }
-              id(uart_send) = 9;
+              id(uart_send) = 9; 
               return str;
         - script.wait: UART_CMD 
         - wait_until:
@@ -231,10 +242,17 @@ climate:
             condition:
               lambda: 'return (id(uart_send) == 0);'
             timeout: 1s
-        - lambda: |-
-            id(debug).publish_state("Heat On");
-            id(uart_send) = 9;
-        - uart.write: "\x1bRF00605E&" #On auto
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda |-
+              id(debug).publish_state("Heat On");
+              id(uart_send) = 9;
+              std::string str;
+              if (id(firmware) == "9200") { str="F005"; }
+              else if (id(firmware) == "E670") { str="F006"; }
+              else { str="F001"; }
+              return str;
+        - script.wait: UART_CMD 
         - wait_until:
             condition:
               lambda: 'return (id(uart_send) == 0);'
@@ -244,6 +262,7 @@ climate:
               lambda: 'return (id(debug).state != "OK");'
             then:
               - lambda: id(debug).publish_state("Stove failed Heat On");
+        - lambda: id(uart_send) = 1;  
     off_mode:
       then:
         - wait_until:
@@ -263,18 +282,18 @@ climate:
               lambda: 'return (id(debug).state != "OK");'
             then:
               - lambda: id(debug).publish_state("Stove failed Heat Off");
+        - lambda: id(uart_send) = 1;  
     visual:
-      min_temperature: 12
-      max_temperature: 30
+      min_temperature: 10
+      max_temperature: 35
       temperature_step:
         target_temperature: 1.0
         current_temperature: 0.1
-
+        
 # constants nog ongebruikt
 #SET_AUGERCOR = "\x1bRD50005A&"
 #SET_EXTRACTORCOR = "\x1bRD50005B&"
 #SET_PELLETCOR = "\x1bRD50005B&"
-
 
 # Define UART pinout RX: GPIO-3 (D9) & TX: GPIO-1 (D10)
 uart:
@@ -293,35 +312,51 @@ uart:
             UARTDebug::log_string(direction, bytes);
             //Convert uart text to string
             std::string data_from_server(bytes.begin(), bytes.end());
-            const int STATE_ECO = 0x10000000;
-            const int STATE_CLEAN = 0x04000000;
-            const int STATE_COOL = 0x08000000;
-            const int STATE_OFF = 0x00000020;
-            const int STATE_ON = 0x02000000;
-            const int STATE_START = 0x01000000;
-            const int STATE_ACK = 0x00000020;
             std::string status;
+            unsigned int checksum = 0;
             if (data_from_server.length() == 10) {
+              
+              status=data_from_server.substr(1, 6);
+              for (size_t i = 0; i < status.size(); i++) {
+                checksum += static_cast<unsigned char>(status[i]);
+              }
+              checksum = checksum & 0xFF;
+            } 
+            if (data_from_server.substr(7, 2) == str_sprintf("%X", checksum)) {
               switch(id(uart_send)) {
                 case 1: {
-                  int currentstate = std::stoi(data_from_server.substr(1, 8), nullptr, 16);
-                  int kachel_aan = 0;
-                  if (STATE_START & currentstate) {
-                    status = "Ignition starting";
-                    kachel_aan = 1;
-                  } else if (STATE_ON & currentstate) {
-                    status = "Flame On";
-                    kachel_aan = 1;
-                  } else if (STATE_CLEAN & currentstate) {
-                    status = "Cleaning";
-                    kachel_aan = 1;
-                  } else if (STATE_ECO & currentstate) {
-                    status = "Eco Idle";
-                    kachel_aan = 1;
-                  } else if (STATE_COOL & currentstate) {
-                    status = "Cooling down";
-                  } else if (STATE_OFF & currentstate) {
+                  const int STATE_OFF             = 0x0000;
+                  const int STATE_IGNITION        = 0x0101;
+                  const int STATE_LOAD_WOOD       = 0x0102;
+                  const int STATE_FIRE_ON         = 0x0103;
+                  const int STATE_FIRE_ON_VENT_ON = 0x0104;
+                  const int STATE_ON              = 0x0201;
+                  const int STATE_STOP_SEQUENCE   = 0x0301;
+                  const int STATE_FIRE_CLEAN      = 0x0401;
+                  const int STATE_COOLING_DOWN1   = 0x0801;
+                  const int STATE_COOLING_DOWN2   = 0x0802;
+                  const int STATE_ECO             = 0x1000;
+                  int currentstate = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  int kachel_aan = 1;
+                  if (STATE_IGNITION == currentstate) { status = "Ignition starting";} 
+                  else if (STATE_LOAD_WOOD == currentstate) { status = "Ignition starting, load wood"; } 
+                  else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
+                  else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
+                  else if (STATE_ON == currentstate) { status = "Stove On"; } 
+                  else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; } 
+                  else if (STATE_ECO & currentstate) { status = "Eco Idle"; } 
+                  else if (STATE_STOP_SEQUENCE == currentstate) {
+                    status = "Stove power off";
+                    kachel_aan = 0;
+                  } else if (STATE_COOLING_DOWN1 == currentstate) {
+                    status = "Cooling down sequence 1";
+                    kachel_aan = 0;
+                  } else if (STATE_COOLING_DOWN2 == currentstate) {
+                    status = "Cooling down sequence 2";
+                    kachel_aan = 0;
+                  } else if (STATE_OFF == currentstate) {
                     status = "Off";
+                    kachel_aan = 0;
                   } else {
                     status = "Unknown state "+ std::to_string(currentstate);
                   }
@@ -349,17 +384,11 @@ uart:
                 case 4: {
                   id(pellet_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
                   id(fan_mode) = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (id(fan_mode) == 1) {
-                    id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform();
-                  } else if (id(fan_mode) == 2) {
-                    id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform();
-                  } else if (id(fan_mode) == 3) {  
-                    id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform();
-                  } else if (id(fan_mode) == 4) {
-                    id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform();
-                  } else if (id(fan_mode) == 5) {
-                    id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform();
-                  }
+                  if (id(fan_mode) == 1) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform(); }
+                  else if (id(fan_mode) == 2) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform(); }
+                  else if (id(fan_mode) == 3) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform(); }
+                  else if (id(fan_mode) == 4) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform(); }
+                  else if (id(fan_mode) == 5) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform(); }
                   id(uart_send) = 1;
                   break;
                 }
@@ -377,9 +406,7 @@ uart:
                   int err_code = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   id(error_code).publish_state(err_code);
                   switch(err_code) {
-                    case 0: {
-                      break;
-                      }
+                    case 0: { break; }
                     case 1: {
                       id(burner_status).publish_state("Ignition failure");
                       break;
@@ -443,21 +470,15 @@ uart:
                 }
                 case 8: {
                   int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (temp>11 && temp <31) {
-                    id(Stove).target_temperature = temp;
-                  } else {
-                    id(debug).publish_state("Error temperature out of range (12-30C) :"+temp);
-                  }
+                  if (temp>9 && temp <36) { id(Stove).target_temperature = temp; } 
+                  else { id(debug).publish_state("Error temperature out of range (10-35C) :"+temp); }
                   id(uart_send) = 0;                  
                   break;
                 }
                 case 9: {
-                  int current_state = std::stoi(data_from_server.substr(1, 8), nullptr, 16);
-                  if (STATE_ACK & current_state) {
-                    status = "OK";
-                  } else {
-                    status = "Unknown return value "+ data_from_server; 
-                  }
+                  int current_state = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  if (current_state == 0) { status = "OK"; }
+                  else { status = "Unknown return value "+ data_from_server; }
                   id(debug).publish_state(status);
                   id(uart_send) = 0;
                   break;
@@ -467,12 +488,20 @@ uart:
                   id(uart_send) = 0;
                   break;
                 }
+                case 11: {
+                  id(PCB_temp).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 12: {
+                  id(firmware)=data_from_server.substr(1, 4);
+                  id(debug).publish_state("Firmware version:"+id(firmware));
+                  id(uart_send) = 0;                  
+                  break;
+                }  
                 default: id(debug).publish_state("Unknown UART command");
               } 
-            } else {
-                id(debug).publish_state("Error length return string <> 10 :"+data_from_server);
-            }
-
+            } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
 time:
   - platform: homeassistant
     id: homeassistant_time
@@ -485,13 +514,13 @@ time:
                 lambda: 'return (id(uart_send) == 0);'
               timeout: 1s
           - lambda: id(uart_send) = 1;
-          - uart.write: "\x1bRD90005f&" #get_status
+          - uart.write: "\x1bRD90005f&" #Cyclus fase
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 2);'
               timeout: 100ms
           - lambda: id(uart_send) = 2;
-          - uart.write: "\x1bRD100057&" #GET_TEMPERATURE
+          - uart.write: "\x1bRD100057&" #GET ambient TEMPERATURE
           - wait_until:
               condition:
                 lambda: 'return (id(uart_send) == 1);'
@@ -501,7 +530,7 @@ time:
                 lambda: 'return (id(burner_status).state != "Off");'
               then:
                 - lambda: id(uart_send) = 3;
-                - uart.write: "\x1bRD300059&" #GET_POWERLEVEL
+                - uart.write: "\x1bRD300059&" #get level ruimteventilator
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 1);'
@@ -514,7 +543,7 @@ time:
                           id: UART_CMD
                           command_in: !lambda |-
                             id(uart_send) = 9;
-                            id(pellet_speed).publish_state(id(fan_mode));
+                            id(pellet_speed).publish_state(id(fan_mode)); 
                             std::string str;
                             int speed;
                             speed=id(fan_mode);
@@ -561,6 +590,22 @@ time:
               condition:
                 lambda: 'return (id(uart_send) == 0);'
               timeout: 100ms
+          - lambda: id(uart_send) = 11;
+          - uart.write: "\x1bRDF0006C&" #GET_PCB_TEMP 
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - if:
+              condition:
+                lambda: 'return (id(firmware) == "0000");'
+              then:
+                - lambda: id(uart_send) = 12;
+                - uart.write: "\x1bRDC00069&" #GET_FIRMWARE 
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms 
 
 text_sensor:
   - platform: template
