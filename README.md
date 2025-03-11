@@ -16,8 +16,9 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - Reset errors (ie out of pellet)
 - Automation possible
 - Send custom commands
-- PCB temperature (beta, #11)
-- DUEPI firmware detected (beta, #11)
+- PCB temperature
+- Full history of temperature, fanspeed etc.
+- DUEPI firmware detected
 
 ### Configuration
 Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
