@@ -330,12 +330,16 @@ uart:
                   const int STATE_LOAD_WOOD       = 0x0102;
                   const int STATE_FIRE_ON         = 0x0103;
                   const int STATE_FIRE_ON_VENT_ON = 0x0104;
+                  const int STATE_ON_CLEAN        = 0x0200;
                   const int STATE_ON              = 0x0201;
                   const int STATE_STOP_SEQUENCE   = 0x0301;
                   const int STATE_FIRE_CLEAN      = 0x0401;
-                  const int STATE_COOLING_DOWN1   = 0x0801;
-                  const int STATE_COOLING_DOWN2   = 0x0802;
+                  const int STATE_COOLDOWN1       = 0x0801;
+                  const int STATE_COOLDOWN2       = 0x0802;
                   const int STATE_ECO             = 0x1000;
+                  const int STATE_ECO_COOL1       = 0x1001; 
+                  const int STATE_ECO_COOL2       = 0x1002;
+                  const int STATE_ECO_OFF         = 0x1003;
                   int currentstate = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   int kachel_aan = 1;
                   if (STATE_IGNITION == currentstate) { status = "Ignition starting";} 
@@ -343,16 +347,20 @@ uart:
                   else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
                   else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
                   else if (STATE_ON == currentstate) { status = "Stove On"; } 
+                  else if (STATE_ON_CLEAN == currentstate) { status = "Stove On, Clean"; } 
                   else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; } 
-                  else if (STATE_ECO & currentstate) { status = "Eco Idle"; } 
+                  else if (STATE_ECO == currentstate) { status = "Eco Idle"; } 
+                  else if (STATE_ECO_COOL1 == currentstate) { status = "Eco Idle, Cooldown sequence 1"; } 
+                  else if (STATE_ECO_COOL2 == currentstate) { status = "Eco Idle, Cooldown sequence 2"; } 
+                  else if (STATE_ECO_OFF == currentstate) { status = "Eco Idle, OFF"; }  
                   else if (STATE_STOP_SEQUENCE == currentstate) {
                     status = "Stove power off";
                     kachel_aan = 0;
-                  } else if (STATE_COOLING_DOWN1 == currentstate) {
-                    status = "Cooling down sequence 1";
+                  } else if (STATE_COOLDOWN1 == currentstate) {
+                    status = "Cooldown sequence 1";
                     kachel_aan = 0;
-                  } else if (STATE_COOLING_DOWN2 == currentstate) {
-                    status = "Cooling down sequence 2";
+                  } else if (STATE_COOLDOWN2 == currentstate) {
+                    status = "Cooldown sequence 2";
                     kachel_aan = 0;
                   } else if (STATE_OFF == currentstate) {
                     status = "Off";
