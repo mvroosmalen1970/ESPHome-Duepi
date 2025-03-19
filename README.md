@@ -19,7 +19,7 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - PCB temperature
 - Full history of temperature, fanspeed etc.
 - DUEPI firmware detected
-- running time stove reported (total life time and after cleaning reset), helps to get an early worning before stove signal the three beeps ;-)
+- running time stove reported (total life time and after cleaning reset), helps to get an early warning before stove signal the three beeps ;-)
 
 ### Configuration
 Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
