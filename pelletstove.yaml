@@ -101,6 +101,14 @@ globals:
 
 sensor:
   - platform: template
+    name: "total burn time (h)"
+    id: total_burn_time
+    accuracy_decimals: 0
+  - platform: template
+    name: "burn time (h)"
+    id: burn_time
+    accuracy_decimals: 0
+  - platform: template
     name: "error code"
     id: error_code
     accuracy_decimals: 0
@@ -506,7 +514,17 @@ uart:
                   id(debug).publish_state("Firmware version:"+id(firmware));
                   id(uart_send) = 0;                  
                   break;
-                }  
+                }
+                case 13: {
+                  id(total_burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 14: {
+                  id(burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
                 default: id(debug).publish_state("Unknown UART command");
               } 
             } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
@@ -514,7 +532,23 @@ time:
   - platform: homeassistant
     id: homeassistant_time
     on_time:
-      # Every minute
+      - seconds: 2
+        minutes: 30
+        hours: /1
+        then:
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 13;
+          - uart.write: "\x1bRED0006B&" #get total burn time
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 14;
+          - uart.write: "\x1bREE0006C&" #get burn time since last reset
+      # Every 10seconds
       - seconds: /10
         then:
           - wait_until:
@@ -613,7 +647,19 @@ time:
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 0);'
-                    timeout: 100ms 
+                    timeout: 100ms
+                - lambda: id(uart_send) = 13;
+                - uart.write: "\x1bRED0006B&" #get total burn time
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms
+                - lambda: id(uart_send) = 14;
+                - uart.write: "\x1bREE0006C&" #get burn time since last reset
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms     
 
 text_sensor:
   - platform: template
