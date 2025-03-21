@@ -4,8 +4,9 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 ![image](https://github.com/user-attachments/assets/37a8dd07-30b7-46e1-8ba0-1c56234960a2)
 ![Screenshot_2025-02-21_19-00-56](https://github.com/user-attachments/assets/50f06f76-f7b8-4078-a9bc-d7b59a99f2d2)
 
-## Beta versions (pending):
-- mvroosmalen1970-patch-6: moved all coding to seperate files so future updates are used directly and enables easy beta testing (change ref: main to mvroosmalen1970-patch-xx in pelletstove.yaml) 
+## New:
+- moved all coding to seperate files so future updates are used directly when you flash ESPHome updates.
+- If you like to test an beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number) 
 
 ## Prerequisites
 - Hardware: Wemos D1 flashed with **ESPHome**. This device has a 5V input and integrated CH340 for easy flashing.
