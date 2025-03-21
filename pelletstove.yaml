@@ -15,14 +15,36 @@ esphome:
             id(burner_status).publish_state("All OK, startup");
             id(Stove).target_temperature = 21.0;
 
+api:
+  encryption:
+    key: !secret encryption_key
+  services:
+    - service: write
+      variables:
+        command: string
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: id(uart_send) = 10;
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda return command;        
+        - script.wait: UART_CMD
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms  
+
 esp8266:
   board: d1
 
 packages:
   remote_package_files:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi
-    files: [script.yaml, api.yaml, globals.yaml, sensor.yaml, switch.yaml, climate.yaml, uart.yaml, time.yaml, text_sensor.yaml]
-    ref: main  
+    files: [script.yaml, globals.yaml, sensor.yaml, switch.yaml, climate.yaml, uart.yaml, time.yaml, text_sensor.yaml]
+    ref: main  #change if you like to test a beta version
 
 # Enable logging
 logger:
@@ -44,7 +66,6 @@ wifi:
     ssid: "Pelletkachel Fallback Hotspot"
     password: "Pelletkachel"
 
-captive_portal:
 
    
 
