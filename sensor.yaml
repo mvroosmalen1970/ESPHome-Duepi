@@ -1,0 +1,64 @@
+sensor:
+  - platform: template
+    name: "total burn time (h)"
+    id: total_burn_time
+    accuracy_decimals: 0
+  - platform: template
+    name: "burn time (h)"
+    id: burn_time
+    accuracy_decimals: 0
+  - platform: template
+    name: "error code"
+    id: error_code
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "exhaust fan speed"
+    id: exh_fan_speed
+    device_class: "speed"
+    unit_of_measurement: "RPM"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "flu gas temperature"
+    id: flu_gas_temp
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "pellet speed"
+    id: pellet_speed
+    accuracy_decimals: 0
+    device_class: "speed"
+    filters:
+      - round: 0
+  - platform: template
+    name: "power level"
+    id: power_level
+    accuracy_decimals: 0
+    filters:
+      - round: 0
+  - platform: template
+    name: "Room Temperature"
+    id: room_temp_stove
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 2
+    filters:
+      - sliding_window_moving_average:
+          window_size: 60
+          send_every: 15
+          send_first_at: 1  
+      - round: 2
+  - platform: template
+    name: "PCB temperature"
+    id: PCB_temp
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    accuracy_decimals: 0
+    filters:
+      - round: 0
