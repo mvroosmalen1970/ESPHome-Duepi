@@ -1,19 +1,6 @@
 esphome:
   name: pelletkachel
   friendly_name: Pellet Kachel
-  on_boot:
-    - priority: -10
-      then: 
-        - lambda: |- 
-            id(uart_send) = 0;
-            id(room_temp_stove).publish_state(17.0);
-            id(power_level).publish_state(1);
-            id(pellet_speed).publish_state(1);
-            id(fan_mode) = 1;
-            id(flu_gas_temp).publish_state(17.0);
-            id(exh_fan_speed).publish_state(0);
-            id(burner_status).publish_state("All OK, startup");
-            id(Stove).target_temperature = 21.0;
 
 api:
   encryption:
@@ -21,17 +8,6 @@ api:
 
 esp8266:
   board: d1
-
-packages:
-  remote_package_files:
-    url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
-    files: [api.yaml, script.yaml, globals.yaml, sensor.yaml, switch.yaml, climate.yaml, uart.yaml, time.yaml, text_sensor.yaml]
-    ref: main  #change if you like to test a beta version
-
-# Enable logging
-logger:
-  level: VERBOSE #makes uart stream available in esphome logstream
-  baud_rate: 0 #disable logging over uart
   
 ota:
   - platform: esphome
@@ -48,6 +24,18 @@ wifi:
     ssid: "Pelletkachel Fallback Hotspot"
     password: "Pelletkachel"
 
-
-   
-
+packages:
+  remote_package_files:
+    url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
+    files: [
+      components/script.yaml, 
+      components/globals.yaml, 
+      components/sensor.yaml, 
+      components/switch.yaml, 
+      components/climate.yaml, 
+      components/uart.yaml, 
+      components/time.yaml, 
+      components/text_sensor.yaml
+      ]
+    ref: main #change if you like to test a beta version
+    refresh: 0d 
