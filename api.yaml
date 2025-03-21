@@ -1,0 +1,22 @@
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret encryption_key
+  services:
+    - service: write
+      variables:
+        command: string
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: id(uart_send) = 10;
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda return command;        
+        - script.wait: UART_CMD
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms  
