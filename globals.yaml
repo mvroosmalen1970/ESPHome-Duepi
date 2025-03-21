@@ -1,0 +1,13 @@
+globals:
+   - id: uart_send
+     type: int
+     restore_value: no
+     initial_value: '0'
+   - id: fan_mode
+     type: int
+     restore_value: no
+     initial_value: '1'
+   - id: firmware
+     type: std::string
+     restore_value: no
+     initial_value: '"0000"'
