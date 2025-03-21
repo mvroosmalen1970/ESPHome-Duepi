@@ -1,0 +1,225 @@
+# Define UART pinout RX: GPIO-3 (D9) & TX: GPIO-1 (D10)
+uart:
+  id: uart_bus
+  tx_pin: 1
+  rx_pin: 3
+  baud_rate: 115200  
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      timeout: 50ms
+      delimiter: "&" 
+    sequence:
+      - lambda: |-
+            UARTDebug::log_string(direction, bytes);
+            //Convert uart text to string
+            std::string data_from_server(bytes.begin(), bytes.end());
+            std::string status;
+            unsigned int checksum = 0;
+            if (data_from_server.length() == 10) {
+              
+              status=data_from_server.substr(1, 6);
+              for (size_t i = 0; i < status.size(); i++) {
+                checksum += static_cast<unsigned char>(status[i]);
+              }
+              checksum = checksum & 0xFF;
+            } 
+            if (data_from_server.substr(7, 2) == str_sprintf("%X", checksum)) {
+              switch(id(uart_send)) {
+                case 1: {
+                  const int STATE_OFF             = 0x0000;
+                  const int STATE_IGNITION        = 0x0101;
+                  const int STATE_LOAD_WOOD       = 0x0102;
+                  const int STATE_FIRE_ON         = 0x0103;
+                  const int STATE_FIRE_ON_VENT_ON = 0x0104;
+                  const int STATE_ON_CLEAN        = 0x0200;
+                  const int STATE_ON              = 0x0201;
+                  const int STATE_STOP_SEQUENCE   = 0x0301;
+                  const int STATE_FIRE_CLEAN      = 0x0401;
+                  const int STATE_COOLDOWN1       = 0x0801;
+                  const int STATE_COOLDOWN2       = 0x0802;
+                  const int STATE_ECO             = 0x1000;
+                  const int STATE_ECO_COOL1       = 0x1001; 
+                  const int STATE_ECO_COOL2       = 0x1002;
+                  const int STATE_ECO_OFF         = 0x1003;
+                  int currentstate = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  int kachel_aan = 1;
+                  if (STATE_IGNITION == currentstate) { status = "Ignition starting";} 
+                  else if (STATE_LOAD_WOOD == currentstate) { status = "Ignition starting, load wood"; } 
+                  else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
+                  else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
+                  else if (STATE_ON == currentstate) { status = "Stove On"; } 
+                  else if (STATE_ON_CLEAN == currentstate) { status = "Stove On, Clean"; } 
+                  else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; } 
+                  else if (STATE_ECO == currentstate) { status = "Eco Idle"; } 
+                  else if (STATE_ECO_COOL1 == currentstate) { status = "Eco Idle, Cooldown sequence 1"; } 
+                  else if (STATE_ECO_COOL2 == currentstate) { status = "Eco Idle, Cooldown sequence 2"; } 
+                  else if (STATE_ECO_OFF == currentstate) { status = "Eco Idle, OFF"; }  
+                  else if (STATE_STOP_SEQUENCE == currentstate) {
+                    status = "Stove power off";
+                    kachel_aan = 0;
+                  } else if (STATE_COOLDOWN1 == currentstate) {
+                    status = "Cooldown sequence 1";
+                    kachel_aan = 0;
+                  } else if (STATE_COOLDOWN2 == currentstate) {
+                    status = "Cooldown sequence 2";
+                    kachel_aan = 0;
+                  } else if (STATE_OFF == currentstate) {
+                    status = "Off";
+                    kachel_aan = 0;
+                  } else {
+                    status = "Unknown state "+ std::to_string(currentstate);
+                  }
+                  id(burner_status).publish_state(status);
+                  if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
+                    id(Stove).make_call().set_mode("OFF").perform();
+                    id(debug).publish_state("Off, stove<>climate");
+                  } else if (kachel_aan == 1 && id(Stove).mode == CLIMATE_MODE_OFF) {
+                    id(Stove).make_call().set_mode("HEAT").perform();
+                    id(debug).publish_state("HEAT, stove<>climate");
+                  }
+                  id(uart_send) = 2;
+                  break;
+                }
+                case 2: {
+                  id(room_temp_stove).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16)/10.0);
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 3: {
+                  id(power_level).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 4: {
+                  id(pellet_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(fan_mode) = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  if (id(fan_mode) == 1) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform(); }
+                  else if (id(fan_mode) == 2) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform(); }
+                  else if (id(fan_mode) == 3) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform(); }
+                  else if (id(fan_mode) == 4) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform(); }
+                  else if (id(fan_mode) == 5) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform(); }
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 5: {
+                  id(flu_gas_temp).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 6: {
+                  id(exh_fan_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16)*10);
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 7: {
+                  int err_code = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  id(error_code).publish_state(err_code);
+                  switch(err_code) {
+                    case 0: { break; }
+                    case 1: {
+                      id(burner_status).publish_state("Ignition failure");
+                      break;
+                      }
+                    case 2: {
+                      id(burner_status).publish_state("Defective suction");
+                      break;
+                      }
+                    case 3: {
+                      id(burner_status).publish_state("Insufficient air intake");
+                      break;
+                      }
+                    case 4: {
+                      id(burner_status).publish_state("Water temperature");
+                      break;
+                      }
+                    case 5: {
+                      id(burner_status).publish_state("Out of pellets");
+                      break;
+                      }
+                    case 6: {
+                      id(burner_status).publish_state("Defective pressure switch");
+                      break;
+                      }
+                    case 7: {
+                      id(burner_status).publish_state("Unknown");
+                      break;
+                      }
+                    case 8: {
+                      id(burner_status).publish_state("No current");
+                      break;
+                      }
+                    case 9: {
+                      id(burner_status).publish_state("Exhaust motor failure");
+                      break;
+                      }
+                    case 10: {
+                      id(burner_status).publish_state("Card surge");
+                      break;
+                      }
+                    case 11: {
+                      id(burner_status).publish_state("Date expired");
+                      break;
+                      }
+                    case 12: {
+                      id(burner_status).publish_state("Unknown");
+                      break;
+                      }
+                    case 13: {
+                      id(burner_status).publish_state("Suction regulating sensor error");
+                      break;
+                      }
+                    case 14: {
+                      id(burner_status).publish_state("Overheating");
+                      break;
+                      }
+                    default: id(burner_status).publish_state("Unknown Error " + std::to_string(err_code));
+                  }
+                  id(uart_send) = 1;
+                  break;
+                }
+                case 8: {
+                  int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  if (temp>9 && temp <36) { id(Stove).target_temperature = temp; } 
+                  else { id(debug).publish_state("Error temperature out of range (10-35C) :"+temp); }
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 9: {
+                  int current_state = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
+                  if (current_state == 0) { status = "OK"; }
+                  else { status = "Unknown return value "+ data_from_server; }
+                  id(debug).publish_state(status);
+                  id(uart_send) = 0;
+                  break;
+                }
+                case 10: {
+                  id(debug).publish_state("Response :"+data_from_server);
+                  id(uart_send) = 0;
+                  break;
+                }
+                case 11: {
+                  id(PCB_temp).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 12: {
+                  id(firmware)=data_from_server.substr(1, 4);
+                  id(debug).publish_state("Firmware version:"+id(firmware));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 13: {
+                  id(total_burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                case 14: {
+                  id(burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
+                  id(uart_send) = 0;                  
+                  break;
+                }
+                default: id(debug).publish_state("Unknown UART command");
+              } 
+            } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
