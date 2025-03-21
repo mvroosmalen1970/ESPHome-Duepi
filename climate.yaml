@@ -1,0 +1,114 @@
+climate:
+  - platform: thermostat
+    name: "Pellet kachel"
+    id: Stove
+    sensor: room_temp_stove
+    min_idle_time: 1s
+    min_heating_off_time: 1s
+    min_heating_run_time: 300s
+    min_fan_mode_switching_time: 1s
+    heat_action: 
+        - lambda: id(debug).publish_state("Thermostat heat action");
+    idle_action:
+        - lambda: id(debug).publish_state("Thermostat idle action");
+    target_temperature_change_action: 
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda |-
+              std::string str;
+              int temp;
+              temp=id(Stove).target_temperature;
+              if (temp<10 || temp>35) {
+                id(debug).publish_state("Temperature out of range (10-35). Set  to 21");
+                temp=21;
+              } 
+              str=str_sprintf("%X", temp);
+              if (str.length()==1) {
+                str="F20" + str;
+              } else{
+                str="F2" + str;
+              }
+              id(uart_send) = 9; 
+              return str;
+        - script.wait: UART_CMD 
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove temp change failed");
+    fan_mode_quiet_action:    
+      then:
+        - lambda: id(fan_mode) = 1;
+    fan_mode_low_action:
+      then:
+        - lambda: id(fan_mode) = 2;
+    fan_mode_middle_action:
+      then:
+        - lambda: id(fan_mode) = 3;
+    fan_mode_medium_action:
+      then:
+        - lambda: id(fan_mode) = 4;
+    fan_mode_high_action:
+      then:
+        - lambda: id(fan_mode) = 5;
+    heat_mode: 
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - script.execute:         
+            id: UART_CMD
+            command_in: !lambda |-
+              id(debug).publish_state("Heat On");
+              id(uart_send) = 9;
+              std::string str;
+              if (id(firmware) == "9200") { str="F005"; }
+              else if (id(firmware) == "E670") { str="F006"; }
+              else { str="F001"; }
+              return str;
+        - script.wait: UART_CMD 
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove failed Heat On");
+        - lambda: id(uart_send) = 1;  
+    off_mode:
+      then:
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 1s
+        - lambda: |- 
+            id(debug).publish_state("Heat OFF");
+            id(uart_send) = 9;
+        - uart.write: "\x1bRF000058&"
+        - wait_until:
+            condition:
+              lambda: 'return (id(uart_send) == 0);'
+            timeout: 100ms
+        - if: 
+            condition:
+              lambda: 'return (id(debug).state != "OK");'
+            then:
+              - lambda: id(debug).publish_state("Stove failed Heat Off");
+        - lambda: id(uart_send) = 1;  
+    visual:
+      min_temperature: 10
+      max_temperature: 35
+      temperature_step:
+        target_temperature: 1.0
+        current_temperature: 0.1
