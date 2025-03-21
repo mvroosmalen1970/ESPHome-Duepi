@@ -1,3 +1,5 @@
+captive_portal:
+
 globals:
    - id: uart_send
      type: int
