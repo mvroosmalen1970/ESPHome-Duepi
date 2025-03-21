@@ -1,0 +1,9 @@
+text_sensor:
+  - platform: template
+    name: "burner status"
+    id: "burner_status"
+    update_interval: 10s 
+  - platform: template
+    name: "debug"
+    id: "debug" 
+    update_interval: 10s
