@@ -11,7 +11,7 @@ esphome:
             id(flu_gas_temp).publish_state(17.0);
             id(exh_fan_speed).publish_state(0);
             id(burner_status).publish_state("All OK, startup");
-            id(Stove).target_temperature = 21.0;# Enable logging
+            id(Stove).target_temperature = 21.0;
 
 api:
   services:
