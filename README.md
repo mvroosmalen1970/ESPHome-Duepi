@@ -1,27 +1,34 @@
 :coffee: [Buy Me A Coffee](https://buymeacoffee.com/mvroosmalen)! :coffee:
 # ESPHome-Duepi
-The Duepi EVO climate platform is a reverse engineered implementation of the app which is controlling Pellet stove heaters using a Duepi Evo Wifi module. With this module it is possible to control your pellet stove with **HomeAssistant**. This is in no way associated with the company Duepi and comes with no guarantees or warranty. Use at your own risk. Optionally one can send a four character code to the stove to test out new commands
-
+The Duepi EVO climate platform is a reverse engineered implementation of the app which is controlling Pellet stove heaters using a Duepi Evo Wifi module. With this module it is possible to control your pellet stove with **HomeAssistant** or **Homey**. This is in no way associated with the company Duepi and comes with no guarantees or warranty. Use at your own risk. Optionally one can send a four character code to the stove to test out new commands. <br />
 ![image](https://github.com/user-attachments/assets/37a8dd07-30b7-46e1-8ba0-1c56234960a2)
 ![Screenshot_2025-02-21_19-00-56](https://github.com/user-attachments/assets/50f06f76-f7b8-4078-a9bc-d7b59a99f2d2)
 
 
 ## Prerequisites
-- Hardware: Wemos D1 flashed with ESPHome. This device has a 5V input and integrated CH340 for easy flashing. 
+- Hardware: Wemos D1 flashed with **ESPHome**. This device has a 5V input and integrated CH340 for easy flashing.
+- ESPHome installed in **Homey** or **HomeAssistent**
+<br />
 
 ## Functionality
-- Control target temperature (10-35°C).
-- Control system on/off.
-- Control fan speed (quite, low, middel, medium, high)
-- Reset errors (ie out of pellet)
-- Automation possible
-- Send custom commands
-- PCB temperature
-- Full history of temperature, fanspeed etc.
-- DUEPI firmware detected
-- running time stove reported (total life time and after cleaning reset), helps to get an early warning before stove signal with the three beeps on startup ;-)
+- Control target temperature (10-35°C). This can be modified. <br />
+- Control system on/off.<br />
+- Control fan speed (quite, low, middel, medium, high) <br />
+- Reset errors (ie out of pellet) <br />
+- Automation possible using any of the reported **Sensors** or **Controls**  <br />
+- Send custom commands and read its reponse in debug <br />
+- PCB temperature <br />
+- Full history of all **Sensors** or **Controls**  (ie temperature, fanspeed....) <br />
+- DUEPI firmware detected <br />
+- running time stove reported (total life time and after cleaning reset), helps to get an early warning before stove sends a signal (the three beeps on startup 😊) <br />
+<br />
 
 ### Configuration
+Install ESPHome in HomeAssistent or Homey using one of the links below: <br />
+https://homey.app/en-us/app/nl.inversion.esphome/ESPhome/ <br />
+https://my.home-assistant.io/redirect/config_flow_start?domain=esphome <br />
+<br />
+
 Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
 encryption:  
 ..key: <ins>!secret encryption_key</ins>  
