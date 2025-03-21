@@ -1,7 +1,5 @@
 # Enable Home Assistant API
 api:
-  encryption:
-    key: !secret encryption_key
   services:
     - service: write
       variables:
