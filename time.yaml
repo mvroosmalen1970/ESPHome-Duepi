@@ -1,0 +1,132 @@
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 2
+        minutes: 30
+        hours: /1
+        then:
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 13;
+          - uart.write: "\x1bRED0006B&" #get total burn time
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 14;
+          - uart.write: "\x1bREE0006C&" #get burn time since last reset
+      # Every 10seconds
+      - seconds: /10
+        then:
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 1s
+          - lambda: id(uart_send) = 1;
+          - uart.write: "\x1bRD90005f&" #Cyclus fase
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 2);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 2;
+          - uart.write: "\x1bRD100057&" #GET ambient TEMPERATURE
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - if:
+              condition:
+                lambda: 'return (id(burner_status).state != "Off");'
+              then:
+                - lambda: id(uart_send) = 3;
+                - uart.write: "\x1bRD300059&" #get level ruimteventilator
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 1);'
+                    timeout: 100ms
+                - if: 
+                    condition:
+                      lambda: 'return (id(pellet_speed).state != id(fan_mode) && id(burner_status).state != "Off" && id(burner_status).state != "Cooling down");' 
+                    then:
+                      - script.execute:         
+                          id: UART_CMD
+                          command_in: !lambda |-
+                            id(uart_send) = 9;
+                            id(pellet_speed).publish_state(id(fan_mode)); 
+                            std::string str;
+                            int speed;
+                            speed=id(fan_mode);
+                            str="F00" + std::to_string(speed);
+                            return str;
+                      - script.wait: UART_CMD 
+                      - wait_until:
+                          condition:
+                            lambda: 'return (id(uart_send) == 0);'
+                          timeout: 100ms
+                      - if: 
+                          condition:
+                            lambda: 'return (id(debug).state != "OK");'
+                          then:
+                            - lambda: id(debug).publish_state("Pelletspeed change failed");  
+                    else: 
+                      - lambda: id(uart_send) = 4;
+                      - uart.write: "\x1bRD40005A&" #GET_PELLETSPEED
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 1);'
+                    timeout: 100ms
+          - lambda: id(uart_send) = 5;
+          - uart.write: "\x1bRD000056&" #GET_FLUGASTEMP
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 6;
+          - uart.write: "\x1bREF0006D&" #GET_EXHFANSPEED
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 7;
+          - uart.write: "\x1bRDA00067&" #GET_ERRORSTATE
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 1);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 8;
+          - uart.write: "\x1bRC60005B&" #GET_SETPOINT 
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - lambda: id(uart_send) = 11;
+          - uart.write: "\x1bRDF0006C&" #GET_PCB_TEMP 
+          - wait_until:
+              condition:
+                lambda: 'return (id(uart_send) == 0);'
+              timeout: 100ms
+          - if:
+              condition:
+                lambda: 'return (id(firmware) == "0000");'
+              then:
+                - lambda: id(uart_send) = 12;
+                - uart.write: "\x1bRDC00069&" #GET_FIRMWARE 
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms
+                - lambda: id(uart_send) = 13;
+                - uart.write: "\x1bRED0006B&" #get total burn time
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms
+                - lambda: id(uart_send) = 14;
+                - uart.write: "\x1bREE0006C&" #get burn time since last reset
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms  
