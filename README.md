@@ -57,6 +57,8 @@ rx_pin: GPIO-03
 GND-pin  
 5V-pin  
 
+If this sounds to complicated contact me for possibilies
+
 ### In Home assistent to activate custom commands for DUEPI stoves: 
   1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
   2) Create automation: (with action select your esphome......write)      
