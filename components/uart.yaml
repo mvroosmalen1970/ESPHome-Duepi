@@ -68,6 +68,9 @@ uart:
                   } else if (STATE_OFF == currentstate) {
                     status = "Off";
                     kachel_aan = 0;
+                  } else if (234 == currentstate) {
+                    status = "Off";
+                    kachel_aan = 0;
                   } else {
                     status = "Unknown state "+ std::to_string(currentstate);
                   }
