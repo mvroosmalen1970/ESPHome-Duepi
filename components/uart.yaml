@@ -68,11 +68,11 @@ uart:
                   } else if (STATE_OFF == currentstate) {
                     status = "Off";
                     kachel_aan = 0;
-                  } else if (234 == currentstate) {
-                    status = "Off";
-                    kachel_aan = 0;
                   } else {
                     status = "Unknown state "+ std::to_string(currentstate);
+                    status = "Off";
+                    kachel_aan = 0;
+                    #0x00DE & 0x00EA observed
                   }
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
@@ -224,7 +224,5 @@ uart:
                   break;
                 }
                 default: id(debug).publish_state("Unknown UART command");
-                status = "Off";
-                kachel_aan = 0;
               } 
             } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
