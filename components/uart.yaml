@@ -224,5 +224,7 @@ uart:
                   break;
                 }
                 default: id(debug).publish_state("Unknown UART command");
+                status = "Off";
+                kachel_aan = 0;
               } 
             } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
