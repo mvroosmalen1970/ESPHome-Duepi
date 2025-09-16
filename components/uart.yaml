@@ -1,4 +1,5 @@
 # Define UART pinout RX: GPIO-3 (D9) & TX: GPIO-1 (D10)
+# 0x00DE & 0x00EA observed as unknown ==> off
 uart:
   id: uart_bus
   tx_pin: 1
@@ -72,7 +73,6 @@ uart:
                     status = "Unknown state "+ std::to_string(currentstate);
                     status = "Off";
                     kachel_aan = 0;
-                    #0x00DE & 0x00EA observed
                   }
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
