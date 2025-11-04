@@ -73,8 +73,7 @@ uart:
                     kachel_aan = 0;
                   } else {
                     status = "Unknown state "+ std::to_string(currentstate);
-                    status = "Off";
-                    kachel_aan = 0;
+                    if (id(Stove).mode == CLIMATE_MODE_OFF) { kachel_aan = 0; }
                   }
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
