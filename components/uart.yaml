@@ -120,6 +120,7 @@ uart:
                 case 7: {
                   int err_code = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   id(error_code).publish_state(err_code);
+                  id(uart_send) = 1;
                   switch(err_code) {
                     case 0: { break; }
                     case 1: {
