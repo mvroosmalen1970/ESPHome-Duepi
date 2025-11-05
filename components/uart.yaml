@@ -224,6 +224,6 @@ uart:
                   id(uart_send) = 0;                  
                   break;
                 }
-                default: id(debug).publish_state("Unknown UART command");
+                default: id(debug).publish_state("Unknown UART command :"+id(uart_send));
               } 
             } else { id(debug).publish_state("Error checksum failed :"+data_from_server); }
