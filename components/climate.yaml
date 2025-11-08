@@ -73,6 +73,7 @@ climate:
               std::string str;
               if (id(firmware) == "9200") { str="F005"; }
               else if (id(firmware) == "E670") { str="F006"; }
+              else if (id(firmware) == "E693") { str="F006"; }
               else { str="F001"; }
               return str;
         - script.wait: UART_CMD 

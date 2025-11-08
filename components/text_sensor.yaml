@@ -7,3 +7,8 @@ text_sensor:
     name: "debug"
     id: "debug" 
     update_interval: 10s
+  - platform: template
+    name: "Duepi-ESP - version"
+    id: versie
+    icon: 'mdi:alpha-v-circle-outline' 
+    update_interval: 6h
