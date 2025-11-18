@@ -70,7 +70,7 @@ Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with nam
 - Artel watt 9
 - Duroflame Rembrand  
 - Qlima Viola 85 S-Line 
-
+- Qlima Delmara 88 S-Line 
 
 
 Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** integration, which I used to create this solution!
