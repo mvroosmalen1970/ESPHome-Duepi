@@ -9,7 +9,7 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - If you like to test an beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number) 
 
 ## Prerequisites
-- Hardware: Wemos D1 flashed with **ESPHome**. This device has a 5V input and integrated CH340 for easy flashing.
+- Hardware: Wemos D1 or ESP32-C3 flashed with **ESPHome**. These devices have a 5V input and integrated CH340 for easy flashing.
 - ESPHome installed in **Homey** or **HomeAssistent**
 <br />
 
@@ -51,7 +51,8 @@ ap:
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
 ![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)  
 ![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)  
-![image](https://github.com/user-attachments/assets/f2125298-5b24-4814-8c65-a8f1f51754c9)  
+![image](https://github.com/user-attachments/assets/f2125298-5b24-4814-8c65-a8f1f51754c9) <img width="375" height="164" alt="image" src="https://github.com/user-attachments/assets/6f5d6a06-a65b-42c0-be17-6f6b2117be50" />
+
 tx_pin: GPIO-01  
 rx_pin: GPIO-03  
 GND-pin  
