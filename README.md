@@ -58,6 +58,8 @@ rx_pin: GPIO-03
 GND-pin  
 5V-pin  
 
+please report any unknown codes in the debug sensor with a possible explanation of what you think its related to. This will help others and robustness of this code.
+
 If this sounds to complicated contact me for possibilies
 
 ### In Home assistent to activate custom commands for DUEPI stoves: 
