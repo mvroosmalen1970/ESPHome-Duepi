@@ -52,7 +52,7 @@ uart:
                   else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
                   else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
                   else if (STATE_FIRE_ON_E693 == currentstate) { status = "Ignition starting, fire on E693"; } 
-                  else if (STATE_ON_AFTER_COOLING_DOWN = currentstate) { status = "Cooldown sequence, wait to start"; } 
+                  else if (STATE_ON_AFTER_COOLING_DOWN == currentstate) { status = "Cooldown sequence, wait to start"; } 
                   else if (STATE_ON == currentstate) { status = "Stove On"; } 
                   else if (STATE_ON_CLEAN == currentstate) { status = "Stove On, Clean"; } 
                   else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; } 
