@@ -8,6 +8,12 @@ api:
 
 esp8266:
   board: d1
+
+#use this for esp-c3 mini
+#esp32
+  #board: lolin_c3_mini
+  #framework:
+    #type: esp-idf
   
 ota:
   - platform: esphome
