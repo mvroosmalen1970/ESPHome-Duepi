@@ -71,6 +71,7 @@ Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with nam
 
 ## Confirmed working with:  
 - Artel watt 9
+- Artel MeNext
 - Duroflame Rembrand  
 - Qlima Viola 85 S-Line 
 - Qlima Delmara 88 S-Line 
