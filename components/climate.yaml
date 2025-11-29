@@ -1,5 +1,6 @@
 climate:
   - platform: thermostat
+    restore_mode: RESTORE_DEFAULT_OFF  # Attempt to restore state and default to off
     name: "Pellet kachel"
     id: Stove
     sensor: room_temp_stove
