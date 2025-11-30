@@ -1,5 +1,6 @@
 climate:
   - platform: thermostat
+    on_boot_restore_from: memory
     name: "Pellet kachel"
     id: Stove
     sensor: room_temp_stove
