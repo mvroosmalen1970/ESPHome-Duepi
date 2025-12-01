@@ -32,6 +32,7 @@ sensor:
   - platform: template
     name: "pellet speed"
     id: pellet_speed
+    restore_value: true
     accuracy_decimals: 0
     device_class: "speed"
     filters:
@@ -39,6 +40,7 @@ sensor:
   - platform: template
     name: "power level"
     id: power_level
+    restore_value: true
     accuracy_decimals: 0
     filters:
       - round: 0
