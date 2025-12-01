@@ -59,6 +59,7 @@ number:
     max_value: 10
     step: 1
     device_class: "speed"
+    optimistic: true
   - platform: template
     name: "power level"
     id: power_level
@@ -66,3 +67,4 @@ number:
     min_value: 0
     max_value: 10
     step: 1
+    optimistic: true
