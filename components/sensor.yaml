@@ -30,21 +30,6 @@ sensor:
     filters:
       - round: 0
   - platform: template
-    name: "pellet speed"
-    id: pellet_speed
-    restore_value: true
-    accuracy_decimals: 0
-    device_class: "speed"
-    filters:
-      - round: 0
-  - platform: template
-    name: "power level"
-    id: power_level
-    restore_value: true
-    accuracy_decimals: 0
-    filters:
-      - round: 0
-  - platform: template
     name: "Room Temperature"
     id: room_temp_stove
     unit_of_measurement: "°C"
@@ -64,3 +49,20 @@ sensor:
     accuracy_decimals: 0
     filters:
       - round: 0
+      
+number:
+  - platform: template
+    name: "pellet speed"
+    id: pellet_speed
+    restore_value: true
+    min_value: 0
+    max_value: 10
+    step: 1
+    device_class: "speed"
+  - platform: template
+    name: "power level"
+    id: power_level
+    restore_value: true
+    min_value: 0
+    max_value: 10
+    step: 1
