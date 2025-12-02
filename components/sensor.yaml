@@ -49,22 +49,16 @@ sensor:
     accuracy_decimals: 0
     filters:
       - round: 0
-      
-number:
   - platform: template
     name: "pellet speed"
     id: pellet_speed
-    restore_value: true
-    min_value: 0
-    max_value: 10
-    step: 1
+    accuracy_decimals: 0
+    filters:
+      - round: 0
     device_class: "speed"
-    optimistic: true
   - platform: template
     name: "power level"
     id: power_level
-    restore_value: true
-    min_value: 0
-    max_value: 10
-    step: 1
-    optimistic: true
+    accuracy_decimals: 0
+    filters:
+      - round: 0
