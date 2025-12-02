@@ -34,6 +34,7 @@ uart:
                   const int STATE_FIRE_ON         = 0x0103;
                   const int STATE_FIRE_ON_VENT_ON = 0x0104;
                   const int STATE_FIRE_ON_E693    = 0x0105;
+                  const int STATE_DELAYED_ON      = 0x010A;
                   const int STATE_LOAD_WOOD_V100  = 0x0132;
                   const int STATE_IGNITION_V100   = 0x0133;
                   const int STATE_ON_CLEAN        = 0x0200;
@@ -52,6 +53,7 @@ uart:
                   else if (STATE_LOAD_WOOD == currentstate) { status = "Ignition starting, load wood"; } 
                   else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
                   else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
+                  else if (STATE_DELAYED_ON == currentstate) { status = "Fire on, wait for cooldown"; } 
                   else if (STATE_FIRE_ON_E693 == currentstate) { status = "Ignition starting, fire on E693"; } 
                   else if (STATE_LOAD_WOOD_V100 == currentstate) { status = "Ignition starting, load wood (V100)"; }
                   else if (STATE_IGNITION_V100 == currentstate) { status = "Ignition starting (V100)"; }
