@@ -33,22 +33,27 @@ https://homey.app/en-us/app/nl.inversion.esphome/ESPhome/ <br />
 https://my.home-assistant.io/redirect/config_flow_start?domain=esphome <br />
 <br />
 
-Paste **pelletstove.yaml** in ESPHome flashed device and <ins>change the underlined parts</ins>:  
+Paste **pelletstove.yaml** in ESPHome and change: 
+- !secret encryption_key <br />
+- !secret wifi_ssid <br />
+- !secret wifi_password <br />
+- CreateYourOwn <br />
+- PelletKachelPWD <br />  
+with your own settings / preferences and flash device.
+```
 encryption:  
-..key: <ins>!secret encryption_key</ins>  
+  key: !secret encryption_key  
 wifi:  
-..networks:  
-....- ssid: <ins>!secret wifi_ssid</ins>  
-......password: <ins>!secret wifi_password</ins>  
-....- ssid: <ins>!secret wifi_ssid1</ins>  
-......password: <ins>!secret wifi_password1</ins>  
+  networks:  
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
 ota:  
-..- platform: esphome  
-....password: "<ins>CreateYourOwn</ins>"  
+  - platform: esphome  
+    password: "CreateYourOwn"  
 ap:  
-..ssid: "Pelletkachel Fallback Hotspot"  
-..password: "<ins>PelletKachel</ins>"  
-  
+  ssid: "Pelletkachel Fallback Hotspot"  
+  password: "PelletKachelPWD"  
+```
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
 ![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)  
 ![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)  
