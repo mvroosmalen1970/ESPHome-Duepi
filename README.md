@@ -82,7 +82,7 @@ Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with nam
 - Eva Calòr Thelma (DUEPI EVO VM88 Board). Maybe with some limitations
 - Qlima Viola 85 S-Line 
 - Qlima Delmara 88 S-Line
-  
+- Interstoves Milano
 
 
 Huge thanks goes to aceindy who found the solution for the HACS **HomeAssistant** integration, which I used to create this solution!
