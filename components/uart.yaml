@@ -216,7 +216,7 @@ uart:
                 }
                 case 12: {
                   id(firmware)=data_from_server.substr(1, 4);
-                  id(versie).publish_state("Firmware DUEPI:"+id(firmware));
+                  id(versie).publish_state("DUEPI v"+id(firmware));
                   id(uart_send) = 0;                  
                   break;
                 }
