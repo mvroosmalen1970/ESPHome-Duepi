@@ -191,9 +191,11 @@ uart:
                 }
                 case 8: {
                   int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (temp>9 && temp <36) { id(Stove).target_temperature = temp; } 
-                  else { id(debug).publish_state("Error temperature out of range (10-35C) :"+temp); }
-                  id(uart_send) = 0;                  
+                  // On ignore les valeurs non valides (ex:0000) sans log d’erreur
+                  if (temp >= 10 && temp <= 35) {
+                    id(Stove).target_temperature = temp;   // synchro consigne poêle -> HA
+                  }
+                  id(uart_send) = 0;
                   break;
                 }
                 case 9: {
