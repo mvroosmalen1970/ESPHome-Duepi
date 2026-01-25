@@ -3,6 +3,11 @@ text_sensor:
     name: "burner status"
     id: "burner_status"
     update_interval: 10s 
+        on_value:
+      then:
+        - lambda: |-
+            const auto s = id(burner_status).state;
+            id(stove_is_heating) = (s.find("OFF") == std::string::npos);
   - platform: template
     name: "debug"
     id: "debug" 
