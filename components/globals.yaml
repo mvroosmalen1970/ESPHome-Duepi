@@ -7,7 +7,7 @@ esphome:
             id(room_temp_stove).publish_state(17.0);
             id(power_level).publish_state(1);
             id(pellet_speed).publish_state(1);
-            id(fan_mode) = 1;
+            id(fan_mode) = 3;
             id(flu_gas_temp).publish_state(17.0);
             id(exh_fan_speed).publish_state(0);
             id(burner_status).publish_state("All OK, startup");
@@ -47,8 +47,8 @@ globals:
      initial_value: '0'
    - id: fan_mode
      type: int
-     restore_value: no
-     initial_value: '1'
+     restore_value: yes
+     initial_value: '3'
    - id: firmware
      type: std::string
      restore_value: no
