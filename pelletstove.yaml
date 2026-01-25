@@ -51,7 +51,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
-  - id: fan_mode
-    type: int
-    restore_value: yes
-    initial_value: "3"
+
+esphome:
+  on_boot:
+    priority: -10
+    then:
+      - lambda: |-
+          id(fan_mode) = 3;
