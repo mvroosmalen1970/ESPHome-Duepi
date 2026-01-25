@@ -45,8 +45,13 @@ packages:
       ]
     ref: main #change if you like to test a beta version
     refresh: 0d
+    
 globals:
   - id: stove_is_heating
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: fan_mode
+    type: int
+    restore_value: yes
+    initial_value: "3"
