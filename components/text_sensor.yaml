@@ -9,6 +9,10 @@ text_sensor:
             const auto s = id(burner_status).state;
             id(stove_is_heating) = (s.find("OFF") == std::string::npos);
   - platform: template
+    name: "Chauffe"
+    id: stove_hvac_summary
+    update_interval: never
+  - platform: template
     name: "debug"
     id: "debug" 
     update_interval: 10s
