@@ -102,22 +102,13 @@ uart:
                   break;
                 }
                 case 4: {
-                  int current = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-
-                  // valeur réelle lue (actuelle)
-                  id(pellet_speed).publish_state(current);
-
-                  // ✅ IMPORTANT : ne pas écraser la consigne utilisateur
-                  // id(fan_mode) = current;  <-- À SUPPRIMER
-
-                  // Optionnel : si tu veux mettre à jour l'affichage HA avec TA consigne
-                  // (et pas avec le "current" renvoyé par le poêle)
+                  id(pellet_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
+                  id(fan_mode) = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   if (id(fan_mode) == 1) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform(); }
                   else if (id(fan_mode) == 2) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform(); }
                   else if (id(fan_mode) == 3) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform(); }
                   else if (id(fan_mode) == 4) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform(); }
                   else if (id(fan_mode) == 5) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform(); }
-
                   id(uart_send) = 1;
                   break;
                 }
