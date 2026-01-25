@@ -5,7 +5,7 @@ esphome:
         - lambda: |- 
             id(uart_send) = 0;
             id(room_temp_stove).publish_state(17.0);
-            id(power_level).publish_state(1);
+            id(power_level).publish_state(3);
             id(pellet_speed).publish_state(1);
             id(fan_mode) = 3;
             id(flu_gas_temp).publish_state(17.0);
