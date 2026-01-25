@@ -55,7 +55,7 @@ time:
                           id: UART_CMD
                           command_in: !lambda |-
                             id(uart_send) = 9;
-                            id(pellet_speed).publish_state(id(fan_mode)); 
+                            //id(pellet_speed).publish_state(id(fan_mode)); 
                             std::string str;
                             int speed;
                             speed=id(fan_mode);
