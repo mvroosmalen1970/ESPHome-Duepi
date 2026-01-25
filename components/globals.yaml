@@ -45,6 +45,10 @@ globals:
      type: int
      restore_value: no
      initial_value: '0'
+   - id: power_level
+     type: int
+     restore_value: yes
+     initial_value: '3'
    - id: fan_mode
      type: int
      restore_value: yes
