@@ -43,7 +43,7 @@ climate:
               else if (id(firmware) == "E670") { str="F006"; }
               else if (id(firmware) == "E693") { str="F006"; }
               else if (id(firmware) == "V100") { str="F006"; }
-              else { str="F001"; }
+              else { str="F003"; }
               return str;
         - script.wait: UART_CMD
         - wait_until:
