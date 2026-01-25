@@ -6,8 +6,14 @@ text_sensor:
         on_value:
       then:
         - lambda: |-
-            const auto s = id(burner_status).state;
-            id(stove_is_heating) = (s.find("OFF") == std::string::npos);
+        const auto s = id(burner_status).state;
+        // heating seulement pour les états "vraiment chauffe"
+        const bool heating =
+          (s.find("OFF") == std::string::npos) &&
+          (s.rfind("Unknown state", 0) != 0) &&
+          (s.find("wait for cooldown") == std::string::npos) &&
+          (s == "on" ? false : true);  // si tu reçois littéralement "on"
+        id(stove_is_heating) = heating;
   - platform: template
     name: "Chauffe"
     id: stove_hvac_summary
