@@ -1,6 +1,11 @@
 esphome:
   name: pelletkachel
   friendly_name: Pellet Kachel
+  on_boot:
+    priority: -10
+    then:
+      - lambda: |-
+          id(fan_mode) = 3;
 
 api:
   encryption:
@@ -51,10 +56,3 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
-
-esphome:
-  on_boot:
-    priority: -10
-    then:
-      - lambda: |-
-          id(fan_mode) = 3;
