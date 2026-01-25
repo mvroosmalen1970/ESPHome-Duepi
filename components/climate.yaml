@@ -18,18 +18,15 @@ climate:
         target_temperature: 1.0
         current_temperature: 0.1
 
-    # ✅ Le point clé : action (= hvac_action dans HA) reflète l'état réel
-    action:
-      lambda: |-
-        if (id(Stove).mode == esphome::climate::CLIMATE_MODE_OFF) {
-          return esphome::climate::CLIMATE_ACTION_OFF;
-        }
-        if (id(stove_is_heating)) {
-          return esphome::climate::CLIMATE_ACTION_HEATING;
-        }
-        return esphome::climate::CLIMATE_ACTION_IDLE;
-
-    # Quand HA met le mode HEAT -> envoi Heat On
+    # ✅ action (= hvac_action dans HA) reflète l'état réel
+    lambda: |-
+      if (id(Stove).mode == esphome::climate::CLIMATE_MODE_OFF) {
+        return esphome::climate::CLIMATE_ACTION_OFF;
+      }
+      if (id(stove_is_heating)) {
+        return esphome::climate::CLIMATE_ACTION_HEATING;
+      }
+      return esphome::climate::CLIMATE_ACTION_IDLE;
     heat_action:
       then:
         - wait_until:
