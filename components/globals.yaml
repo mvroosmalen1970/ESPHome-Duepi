@@ -51,7 +51,7 @@ globals:
      initial_value: '3'
    - id: fan_mode
      type: int
-     restore_value: yes
+     restore_value: no
      initial_value: '3'
    - id: firmware
      type: std::string
