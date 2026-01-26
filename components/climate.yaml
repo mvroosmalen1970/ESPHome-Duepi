@@ -18,7 +18,7 @@ climate:
         target_temperature: 1.0
         current_temperature: 0.1
 
-    # ✅ action (= hvac_action dans HA) reflète l'état réel
+  action:
     lambda: |-
       if (id(Stove).mode == esphome::climate::CLIMATE_MODE_OFF) {
         return esphome::climate::CLIMATE_ACTION_OFF;
