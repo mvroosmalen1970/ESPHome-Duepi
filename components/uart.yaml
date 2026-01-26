@@ -80,6 +80,46 @@ uart:
                     status = "Unknown state "+ std::to_string(currentstate);
                     if (id(Stove).mode == CLIMATE_MODE_OFF) { kachel_aan = 0; }
                   }
+                  bool heating = false;
+
+                  // ✅ Chauffe = phases où le poêle est réellement en train de produire/maintenir du feu
+                  if (STATE_IGNITION == currentstate ||
+                      STATE_LOAD_WOOD == currentstate ||
+                      STATE_FIRE_ON == currentstate ||
+                      STATE_FIRE_ON_VENT_ON == currentstate ||
+                      STATE_FIRE_ON_E693 == currentstate ||
+                      STATE_LOAD_WOOD_V100 == currentstate ||
+                      STATE_IGNITION_V100 == currentstate ||
+                      STATE_ON == currentstate ||
+                      STATE_ON_CLEAN == currentstate ||
+                      STATE_FIRE_CLEAN == currentstate) {
+                    heating = true;
+                  }
+
+                  // ✅ Tu veux explicitement que "wait for cooldown" soit idle
+                  if (STATE_DELAYED_ON == currentstate) {
+                    heating = false;
+                  }
+
+                  // ✅ Cooldown / eco / off = idle
+                  if (STATE_STOP_SEQUENCE == currentstate ||
+                      STATE_COOLDOWN1 == currentstate ||
+                      STATE_COOLDOWN2 == currentstate ||
+                      STATE_ECO == currentstate ||
+                      STATE_ECO_COOL1 == currentstate ||
+                      STATE_ECO_COOL2 == currentstate ||
+                      STATE_ECO_OFF == currentstate ||
+                      STATE_OFF == currentstate) {
+                    heating = false;
+                  }
+
+                  // ✅ Unknown state = idle (comme tu veux)
+                  if (status.rfind("Unknown state", 0) == 0) {
+                    heating = false;
+                  }
+
+                  id(stove_is_heating) = heating;
+                  id(Stove).publish_state();
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
                     id(Stove).make_call().set_mode("OFF").perform();
