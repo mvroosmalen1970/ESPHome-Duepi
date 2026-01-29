@@ -1,0 +1,12 @@
+binary_sensor:
+  # Expose the computed heating state to Home Assistant for debugging.
+  # This lets you verify whether ESPHome thinks the stove is heating, independently
+  # from how the HA UI renders hvac_action.
+  - platform: template
+    name: "Stove is heating (raw)"
+    id: stove_is_heating_raw
+    lambda: |-
+      return id(stove_is_heating);
+    entity_category: diagnostic
+    device_class: heat
+    update_interval: 2s

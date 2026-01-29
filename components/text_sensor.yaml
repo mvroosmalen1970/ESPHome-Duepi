@@ -5,19 +5,9 @@ text_sensor:
     update_interval: 10s
     on_value:
       then:
-        - lambda: |-
-            const auto s = id(burner_status).state;
-            // heating seulement pour les états "vraiment chauffe"
-            const bool heating =
-              (s.find("OFF") == std::string::npos) &&
-              (s.find("Off") == std::string::npos) &&
-              (s.rfind("Unknown state", 0) != 0) &&
-              (s.find("wait for cooldown") == std::string::npos) &&
-              (s.find("Cooldown") == std::string::npos) &&
-              (s.find("Eco Idle") == std::string::npos);
-            id(stove_is_heating) = heating;
-            // Force la mise a jour de hvac_action dans HA
-            id(Stove).publish_state();
+        # Do not derive heating/idle from the text label.
+        # The authoritative heating state comes from the DUEPI state code in uart.yaml.
+        - lambda: id(Stove).publish_state();
   - platform: template
     name: "Chauffe"
     id: stove_hvac_summary

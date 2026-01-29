@@ -41,7 +41,8 @@ packages:
       components/climate.yaml, 
       components/uart.yaml, 
       components/time.yaml, 
-      components/text_sensor.yaml
+      components/text_sensor.yaml,
+      components/binary_sensor.yaml
       ]
     ref: main #change if you like to test a beta version
     refresh: 0d
