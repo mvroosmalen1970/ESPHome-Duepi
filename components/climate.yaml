@@ -19,11 +19,31 @@ climate:
         current_temperature: 0.1
 
   action:
+    # Derive the UI hvac_action from the same string we expose to HA as burner status.
+    # This avoids mismatches where HA shows burner_status="Stove On" but hvac_action="idle".
     lambda: |-
       if (id(Stove).mode == esphome::climate::CLIMATE_MODE_OFF) {
         return esphome::climate::CLIMATE_ACTION_OFF;
       }
-      if (id(stove_is_heating)) {
+
+      const std::string s = id(burner_status).state;
+      const bool heating =
+        // positive states
+        (s.find("Stove On") != std::string::npos) ||
+        (s.find("Cleaning") != std::string::npos) ||
+        (s.find("Ignition") != std::string::npos) ||
+        // firmware-specific variants
+        (s.find("fire on") != std::string::npos) ||
+        (s.find("Fire on") != std::string::npos);
+
+      const bool explicitly_not_heating =
+        (s.find("Eco Idle") != std::string::npos) ||
+        (s.find("Cooldown") != std::string::npos) ||
+        (s.find("wait for cooldown") != std::string::npos) ||
+        (s.find("Off") != std::string::npos) ||
+        (s.find("OFF") != std::string::npos);
+
+      if (heating && !explicitly_not_heating) {
         return esphome::climate::CLIMATE_ACTION_HEATING;
       }
       return esphome::climate::CLIMATE_ACTION_IDLE;
