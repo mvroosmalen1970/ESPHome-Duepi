@@ -2,8 +2,8 @@
 # 0x00DE & 0x00EA observed as unknown ==> off
 uart:
   id: uart_bus
-  tx_pin: 1
-  rx_pin: 3
+  tx_pin: GPIO5
+  rx_pin: GPIO6
   baud_rate: 115200  
   debug:
     direction: RX
@@ -80,6 +80,27 @@ uart:
                     status = "Unknown state "+ std::to_string(currentstate);
                     if (id(Stove).mode == CLIMATE_MODE_OFF) { kachel_aan = 0; }
                   }
+                  // Sync heating state for HA even without setpoint changes
+                  bool heating = false;
+                  switch (currentstate) {
+                    case STATE_IGNITION:
+                    case STATE_LOAD_WOOD:
+                    case STATE_FIRE_ON:
+                    case STATE_FIRE_ON_VENT_ON:
+                    case STATE_DELAYED_ON:
+                    case STATE_FIRE_ON_E693:
+                    case STATE_LOAD_WOOD_V100:
+                    case STATE_IGNITION_V100:
+                    case STATE_ON:
+                    case STATE_ON_CLEAN:
+                    case STATE_FIRE_CLEAN:
+                      heating = true;
+                      break;
+                    default:
+                      heating = false;
+                  }
+                  id(stove_is_heating) = heating;
+                  id(Stove).publish_state();
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
                     id(Stove).make_call().set_mode("OFF").perform();
@@ -191,9 +212,11 @@ uart:
                 }
                 case 8: {
                   int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (temp>9 && temp <36) { id(Stove).target_temperature = temp; } 
-                  else { id(debug).publish_state("Error temperature out of range (10-35C) :"+temp); }
-                  id(uart_send) = 0;                  
+                  // On ignore les valeurs non valides (ex:0000) sans log d’erreur
+                  if (temp >= 10 && temp <= 35) {
+                    id(Stove).target_temperature = temp;   // synchro consigne poêle -> HA
+                  }
+                  id(uart_send) = 0;
                   break;
                 }
                 case 9: {

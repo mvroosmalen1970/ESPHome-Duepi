@@ -1,14 +1,23 @@
 text_sensor:
   - platform: template
     name: "burner status"
-    id: "burner_status"
-    update_interval: 10s 
+    id: burner_status
+    update_interval: 10s
+    on_value:
+      then:
+        # Do not derive heating/idle from the text label.
+        # The authoritative heating state comes from the DUEPI state code in uart.yaml.
+        - lambda: id(Stove).publish_state();
+  - platform: template
+    name: "Chauffe"
+    id: stove_hvac_summary
+    update_interval: never
   - platform: template
     name: "debug"
-    id: "debug" 
+    id: debug
     update_interval: 10s
   - platform: template
     name: "Duepi-ESP - version"
     id: versie
-    icon: 'mdi:alpha-v-circle-outline' 
+    icon: 'mdi:alpha-v-circle-outline'
     update_interval: 6h
