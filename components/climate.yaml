@@ -23,9 +23,9 @@ climate:
               std::string str;
               int temp;
               temp=id(Stove).target_temperature;
-              if (temp<10 || temp>35) {
-                id(debug).publish_state("Temperature out of range (10-35). Set  to 21");
-                temp=21;
+              if (temp<id(min_temp) || temp>id(max_temp)) {
+                id(debug).publish_state("Temperature out of range. Set  to average min/max temp");
+                temp=(id(min_temp)+<id(max_temp))/2;
               } 
               str=str_sprintf("%X", temp);
               if (str.length()==1) {
@@ -110,8 +110,8 @@ climate:
               - lambda: id(debug).publish_state("Stove failed Heat Off");
         - lambda: id(uart_send) = 1;  
     visual:
-      min_temperature: 10
-      max_temperature: 35
+      min_temperature: id(min_temp)
+      max_temperature: id(max_temp)
       temperature_step:
         target_temperature: 1.0
         current_temperature: 0.1
