@@ -30,6 +30,12 @@ wifi:
     ssid: "Pelletkachel Fallback Hotspot"
     password: "Pelletkachel"
 
+substitutions:
+  min_temp: "10"     #set minimum temperature for climate 
+  max_temp: "35"     #set maximum temperature for climate 
+  tx_pin_esp: '1'    #TX pin on esp module 
+  rx_pin_esp: '3'    #RX pin on esp module
+
 packages:
   remote_package_files:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
