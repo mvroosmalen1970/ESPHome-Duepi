@@ -110,8 +110,8 @@ climate:
               - lambda: id(debug).publish_state("Stove failed Heat Off");
         - lambda: id(uart_send) = 1;  
     visual:
-      min_temperature: id(min_temp)
-      max_temperature: id(max_temp)
+      min_temperature: ${min_temp} 
+      max_temperature: ${max_temp}
       temperature_step:
         target_temperature: 1.0
         current_temperature: 0.1
