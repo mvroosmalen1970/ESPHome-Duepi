@@ -2,8 +2,8 @@
 # 0x00DE & 0x00EA observed as unknown ==> off
 uart:
   id: uart_bus
-  tx_pin: 1
-  rx_pin: 3
+  tx_pin: ${tx_pin_esp}
+  rx_pin: ${rx_pin_esp}
   baud_rate: 115200  
   debug:
     direction: RX
@@ -191,8 +191,8 @@ uart:
                 }
                 case 8: {
                   int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (temp>9 && temp <36) { id(Stove).target_temperature = temp; } 
-                  else { id(debug).publish_state("Error temperature out of range (10-35C) :"+temp); }
+                  if (temp>= ${min_temp}  && temp <= ${max_temp} ) { id(Stove).target_temperature = temp; } 
+                  else { id(debug).publish_state("Error temperature out of range :"+temp); }
                   id(uart_send) = 0;                  
                   break;
                 }
