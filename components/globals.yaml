@@ -12,7 +12,7 @@ esphome:
             id(exh_fan_speed).publish_state(0);
             id(burner_status).publish_state("All OK, startup");
             id(Stove).target_temperature = 21.0;
-            id(versie).publish_state("v25.12.1");
+            id(versie).publish_state("v26.02.01");
 
 api:
   services:
