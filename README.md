@@ -52,7 +52,14 @@ ota:
     password: "CreateYourOwn"  
 ap:  
   ssid: "Pelletkachel Fallback Hotspot"  
-  password: "PelletKachelPWD"  
+  password: "PelletKachelPWD"
+
+substitutions:
+  min_temp: "10"     #set minimum temperature for climate 
+  max_temp: "35"     #set maximum temperature for climate 
+  temp_unit: "°C"    #set climate unit, use "°C" or "°F"
+  tx_pin_esp: '1'    #TX pin on esp module 
+  rx_pin_esp: '3'    #RX pin on esp module
 ```
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
 ![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)  
