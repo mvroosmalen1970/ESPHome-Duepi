@@ -3,7 +3,7 @@ script:
     parameters:
       command_in: string
     then:
-      - uart.write: 
+      - uart.write:
             id: uart_bus
             data: !lambda |-
               std::string str;
@@ -13,9 +13,9 @@ script:
                 checksum += static_cast<unsigned char>(command_in[i]);
               }
               checksum = checksum & 0xFF;
-              str=str_sprintf("%X", checksum); 
+              str=str_sprintf("%X", checksum);
               str="\x1b" + command_in + str + "&";
-              id(debug).publish_state("Custom command: "+str+" send.");  
+              id(debug).publish_state("Custom command: "+str+" send.");
               id(debug_tx).publish_state(str);
               id(debug_last_payload).publish_state(command_in);
               std::vector<uint8_t> vec(str.begin(), str.end());

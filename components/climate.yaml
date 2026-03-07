@@ -8,11 +8,11 @@ climate:
     min_heating_off_time: 1s
     min_heating_run_time: 300s
     min_fan_mode_switching_time: 1s
-    heat_action: 
+    heat_action:
         - lambda: id(debug).publish_state("Thermostat heat action");
     idle_action:
         - lambda: id(debug).publish_state("Thermostat idle action");
-    target_temperature_change_action: 
+    target_temperature_change_action:
         - if:
             condition:
               lambda: 'return !id(expert_bridge_client_connected);'
@@ -21,7 +21,7 @@ climate:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 1s
-              - script.execute:         
+              - script.execute:
                   id: UART_CMD
                   command_in: !lambda |-
                     std::string str;
@@ -30,21 +30,21 @@ climate:
                     if (temp<${min_temp} || temp>${max_temp}) {
                       id(debug).publish_state("Temperature out of range. Set  to average min/max temp");
                       temp=( ${min_temp} + ${max_temp} )/2;
-                    } 
+                    }
                     str=str_sprintf("%X", temp);
                     if (str.length()==1) {
                       str="F20" + str;
                     } else{
                       str="F2" + str;
                     }
-                    id(uart_send) = 9; 
+                    id(uart_send) = 9;
                     return str;
-              - script.wait: UART_CMD 
+              - script.wait: UART_CMD
               - wait_until:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 100ms
-              - if: 
+              - if:
                   condition:
                     lambda: 'return (id(debug).state != "OK");'
                   then:
@@ -52,7 +52,7 @@ climate:
             else:
               - lambda: |-
                   id(debug).publish_state("Official app connected: target temperature refused");
-    fan_mode_quiet_action:    
+    fan_mode_quiet_action:
       then:
         - lambda: id(fan_mode) = 1;
     fan_mode_low_action:
@@ -67,7 +67,7 @@ climate:
     fan_mode_high_action:
       then:
         - lambda: id(fan_mode) = 5;
-    heat_mode: 
+    heat_mode:
       then:
         - if:
             condition:
@@ -77,7 +77,7 @@ climate:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 1s
-              - script.execute:         
+              - script.execute:
                   id: UART_CMD
                   command_in: !lambda |-
                     id(debug).publish_state("Heat On");
@@ -89,12 +89,12 @@ climate:
                     else if (id(firmware) == "V100") { str="F006"; }
                     else { str="F001"; }
                     return str;
-              - script.wait: UART_CMD 
+              - script.wait: UART_CMD
               - wait_until:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 100ms
-              - if: 
+              - if:
                   condition:
                     lambda: 'return (id(debug).state != "OK");'
                   then:
@@ -113,7 +113,7 @@ climate:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 1s
-              - lambda: |- 
+              - lambda: |-
                   id(debug).publish_state("Heat OFF");
                   id(uart_send) = 9;
               - uart.write: "\x1bRF000058&"
@@ -121,7 +121,7 @@ climate:
                   condition:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 100ms
-              - if: 
+              - if:
                   condition:
                     lambda: 'return (id(debug).state != "OK");'
                   then:

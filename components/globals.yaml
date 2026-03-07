@@ -1,8 +1,8 @@
 esphome:
   on_boot:
     - priority: -10
-      then: 
-        - lambda: |- 
+      then:
+        - lambda: |-
             id(uart_send) = 0;
             id(expert_bridge_mode_requested) = false;
             id(expert_bridge_client_connected) = false;
@@ -33,9 +33,9 @@ api:
                     lambda: 'return (id(uart_send) == 0);'
                   timeout: 1s
               - lambda: id(uart_send) = 10;
-              - script.execute:         
+              - script.execute:
                   id: UART_CMD
-                  command_in: !lambda return command;        
+                  command_in: !lambda return command;
               - script.wait: UART_CMD
               - wait_until:
                   condition:
@@ -93,7 +93,7 @@ api:
                     - script.execute:
                         id: UART_RAW_CMD
                         payload_in: !lambda |-
-                          return str_sprintf("L%02X", param & 0xFF);
+                          return str_sprintf("L%02X000", param & 0xFF);
                     - script.wait: UART_RAW_CMD
                     - wait_until:
                         condition:

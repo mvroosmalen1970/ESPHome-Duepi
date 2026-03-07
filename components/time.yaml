@@ -55,31 +55,31 @@ time:
                           condition:
                             lambda: 'return (id(uart_send) == 1);'
                           timeout: 100ms
-                      - if: 
+                      - if:
                           condition:
-                            lambda: 'return (id(pellet_speed).state != id(fan_mode) && id(burner_status).state != "Off" && id(burner_status).state != "Cooling down");' 
+                            lambda: 'return (id(pellet_speed).state != id(fan_mode) && id(burner_status).state != "Off" && id(burner_status).state != "Cooling down");'
                           then:
-                            - script.execute:         
+                            - script.execute:
                                 id: UART_CMD
                                 command_in: !lambda |-
                                   id(uart_send) = 9;
-                                  id(pellet_speed).publish_state(id(fan_mode)); 
+                                  id(pellet_speed).publish_state(id(fan_mode));
                                   std::string str;
                                   int speed;
                                   speed=id(fan_mode);
                                   str="F00" + std::to_string(speed);
                                   return str;
-                            - script.wait: UART_CMD 
+                            - script.wait: UART_CMD
                             - wait_until:
                                 condition:
                                   lambda: 'return (id(uart_send) == 0);'
                                 timeout: 100ms
-                            - if: 
+                            - if:
                                 condition:
                                   lambda: 'return (id(debug).state != "OK");'
                                 then:
-                                  - lambda: id(debug).publish_state("Pelletspeed change failed");  
-                          else: 
+                                  - lambda: id(debug).publish_state("Pelletspeed change failed");
+                          else:
                             - lambda: id(uart_send) = 4;
                             - uart.write: "\x1bRD40005A&" #GET_PELLETSPEED
                       - wait_until:
@@ -105,13 +105,13 @@ time:
                       lambda: 'return (id(uart_send) == 1);'
                     timeout: 100ms
                 - lambda: id(uart_send) = 8;
-                - uart.write: "\x1bRC60005B&" #GET_SETPOINT 
+                - uart.write: "\x1bRC60005B&" #GET_SETPOINT
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 0);'
                     timeout: 100ms
                 - lambda: id(uart_send) = 11;
-                - uart.write: "\x1bRDF0006C&" #GET_PCB_TEMP 
+                - uart.write: "\x1bRDF0006C&" #GET_PCB_TEMP
                 - wait_until:
                     condition:
                       lambda: 'return (id(uart_send) == 0);'
@@ -121,7 +121,7 @@ time:
                       lambda: 'return (id(firmware) == "0000");'
                     then:
                       - lambda: id(uart_send) = 12;
-                      - uart.write: "\x1bRDC00069&" #GET_FIRMWARE 
+                      - uart.write: "\x1bRDC00069&" #GET_FIRMWARE
                       - wait_until:
                           condition:
                             lambda: 'return (id(uart_send) == 0);'
@@ -137,4 +137,4 @@ time:
                       - wait_until:
                           condition:
                             lambda: 'return (id(uart_send) == 0);'
-                          timeout: 100ms  
+                          timeout: 100ms

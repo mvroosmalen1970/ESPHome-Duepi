@@ -26,7 +26,7 @@ switch:
             - wait_until:
                 condition:
                   lambda: 'return (id(uart_send) == 0);'
-                timeout: 1s 
+                timeout: 1s
             - lambda: id(uart_send) = 9;
             - uart.write: "\x1bRD60005C&"
             - wait_until:
