@@ -16,5 +16,27 @@ script:
               str=str_sprintf("%X", checksum); 
               str="\x1b" + command_in + str + "&";
               id(debug).publish_state("Custom command: "+str+" send.");  
+              id(debug_tx).publish_state(str);
+              id(debug_last_payload).publish_state(command_in);
+              std::vector<uint8_t> vec(str.begin(), str.end());
+              return vec;
+  - id: UART_RAW_CMD
+    parameters:
+      payload_in: string
+    then:
+      - uart.write:
+            id: uart_bus
+            data: !lambda |-
+              std::string payload = payload_in;
+              unsigned int checksum = 0;
+              for (size_t i = 0; i < payload.size(); i++) {
+                checksum += static_cast<unsigned char>(payload[i]);
+              }
+              checksum = checksum & 0xFF;
+              std::string checksum_hex = str_sprintf("%X", checksum);
+              std::string str = "\x1b" + payload + checksum_hex + "&";
+              id(debug).publish_state("Raw command: " + str + " send.");
+              id(debug_tx).publish_state(str);
+              id(debug_last_payload).publish_state(payload);
               std::vector<uint8_t> vec(str.begin(), str.end());
               return vec;

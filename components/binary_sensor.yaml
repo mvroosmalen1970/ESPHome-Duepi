@@ -1,0 +1,6 @@
+binary_sensor:
+  - platform: template
+    name: "Official app connected"
+    id: expert_tcp_bridge_connected_bs
+    device_class: connectivity
+    entity_category: diagnostic

@@ -6,9 +6,60 @@ text_sensor:
   - platform: template
     name: "debug"
     id: "debug" 
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 10s
+  - platform: template
+    name: "debug tx"
+    id: debug_tx
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 10s
+  - platform: template
+    name: "debug rx"
+    id: debug_rx
+    entity_category: diagnostic
+    disabled_by_default: true
+    update_interval: 10s
+  - platform: template
+    name: "debug last payload"
+    id: debug_last_payload
+    entity_category: diagnostic
+    disabled_by_default: true
     update_interval: 10s
   - platform: template
     name: "Duepi-ESP - version"
     id: versie
     icon: 'mdi:alpha-v-circle-outline' 
     update_interval: 6h
+
+text:
+  - platform: template
+    name: "Debug raw protocol"
+    id: debug_raw_payload_input
+    entity_category: config
+    disabled_by_default: true
+    mode: TEXT
+    optimistic: true
+    update_interval: 10s
+    set_action:
+      - if:
+          condition:
+            lambda: 'return !id(expert_bridge_client_connected);'
+          then:
+            - wait_until:
+                condition:
+                  lambda: 'return (id(uart_send) == 0);'
+                timeout: 1s
+            - lambda: id(uart_send) = 10;
+            - script.execute:
+                id: UART_RAW_CMD
+                payload_in: !lambda return x;
+            - script.wait: UART_RAW_CMD
+            - wait_until:
+                condition:
+                  lambda: 'return (id(uart_send) == 0);'
+                timeout: 100ms
+          else:
+            - lambda: |-
+                id(debug).publish_state("Official app connected: raw payload refused");

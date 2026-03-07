@@ -45,10 +45,12 @@ packages:
       components/globals.yaml, 
       components/sensor.yaml, 
       components/switch.yaml, 
+      components/binary_sensor.yaml,
       components/climate.yaml, 
       components/uart.yaml, 
       components/time.yaml, 
-      components/text_sensor.yaml
+      components/text_sensor.yaml,
+      components/expert_bridge.yaml
       ]
     ref: main #change if you like to test a beta version
     refresh: 0d 

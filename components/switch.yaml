@@ -1,18 +1,40 @@
 switch:
   - platform: template
+    name: "Official app compatibility mode"
+    id: expert_tcp_bridge_mode
+    icon: "mdi:cellphone-link"
+    entity_category: config
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(expert_bridge_mode_requested) = true;
+          id(debug).publish_state("Official app compatibility enabled on port 2000");
+    turn_off_action:
+      - lambda: |-
+          id(expert_bridge_mode_requested) = false;
+          id(debug).publish_state("Official app compatibility disabled");
+  - platform: template
     name: "Reset"
     id: reset_sw
     icon: "mdi:restart"
     turn_on_action: #REMOTE_RESET
-      - wait_until:
+      - if:
           condition:
-            lambda: 'return (id(uart_send) == 0);'
-          timeout: 1s 
-      - lambda: id(uart_send) = 9;
-      - uart.write: "\x1bRD60005C&"
-      - wait_until:
-          condition:
-            lambda: 'return (id(uart_send) == 0);'
-          timeout: 100ms
-      - lambda: id(debug).publish_state("Reset pellet stove s6ful");
+            lambda: 'return !id(expert_bridge_client_connected);'
+          then:
+            - wait_until:
+                condition:
+                  lambda: 'return (id(uart_send) == 0);'
+                timeout: 1s 
+            - lambda: id(uart_send) = 9;
+            - uart.write: "\x1bRD60005C&"
+            - wait_until:
+                condition:
+                  lambda: 'return (id(uart_send) == 0);'
+                timeout: 100ms
+            - lambda: id(debug).publish_state("Reset pellet stove s6ful");
+          else:
+            - lambda: |-
+                id(debug).publish_state("Official app connected: reset refused");
       - switch.turn_off: reset_sw
