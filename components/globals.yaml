@@ -1,9 +1,12 @@
 esphome:
   on_boot:
     - priority: -10
-      then: 
-        - lambda: |- 
+      then:
+        - lambda: |-
             id(uart_send) = 0;
+            id(expert_bridge_mode_requested) = false;
+            id(expert_bridge_client_connected) = false;
+            id(expert_bridge_takeover_active) = false;
             id(room_temp_stove).publish_state(17.0);
             id(power_level).publish_state(1);
             id(pellet_speed).publish_state(1);
@@ -13,6 +16,7 @@ esphome:
             id(burner_status).publish_state("All OK, startup");
             id(Stove).target_temperature = 21.0;
             id(versie).publish_state("v26.02.01");
+            id(expert_tcp_bridge_connected_bs).publish_state(false);
 
 api:
   services:
@@ -20,19 +24,84 @@ api:
       variables:
         command: string
       then:
-        - wait_until:
+        - if:
             condition:
-              lambda: 'return (id(uart_send) == 0);'
-            timeout: 1s
-        - lambda: id(uart_send) = 10;
-        - script.execute:         
-            id: UART_CMD
-            command_in: !lambda return command;        
-        - script.wait: UART_CMD
-        - wait_until:
+              lambda: 'return !id(expert_bridge_client_connected);'
+            then:
+              - wait_until:
+                  condition:
+                    lambda: 'return (id(uart_send) == 0);'
+                  timeout: 1s
+              - lambda: id(uart_send) = 10;
+              - script.execute:
+                  id: UART_CMD
+                  command_in: !lambda return command;
+              - script.wait: UART_CMD
+              - wait_until:
+                  condition:
+                    lambda: 'return (id(uart_send) == 0);'
+                  timeout: 100ms
+            else:
+              - lambda: |-
+                  id(debug).publish_state("Official app connected: write refused");
+    - service: write_raw
+      variables:
+        payload: string
+      then:
+        - if:
             condition:
-              lambda: 'return (id(uart_send) == 0);'
-            timeout: 100ms 
+              lambda: 'return !id(expert_bridge_client_connected);'
+            then:
+              - wait_until:
+                  condition:
+                    lambda: 'return (id(uart_send) == 0);'
+                  timeout: 1s
+              - lambda: id(uart_send) = 10;
+              - script.execute:
+                  id: UART_RAW_CMD
+                  payload_in: !lambda return payload;
+              - script.wait: UART_RAW_CMD
+              - wait_until:
+                  condition:
+                    lambda: 'return (id(uart_send) == 0);'
+                  timeout: 100ms
+            else:
+              - lambda: |-
+                  id(debug).publish_state("Official app connected: write_raw refused");
+    - service: read_param
+      variables:
+        param: int
+      then:
+        - if:
+            condition:
+              lambda: 'return !id(expert_bridge_client_connected);'
+            then:
+              - wait_until:
+                  condition:
+                    lambda: 'return (id(uart_send) == 0);'
+                  timeout: 1s
+              - lambda: |-
+                  id(uart_send) = 10;
+                  if (param < 0) {
+                    id(debug).publish_state("read_param: negative parameter refused");
+                    id(uart_send) = 0;
+                  }
+              - if:
+                  condition:
+                    lambda: 'return (id(uart_send) == 10);'
+                  then:
+                    - script.execute:
+                        id: UART_RAW_CMD
+                        payload_in: !lambda |-
+                          return str_sprintf("L%02X000", param & 0xFF);
+                    - script.wait: UART_RAW_CMD
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 100ms
+            else:
+              - lambda: |-
+                  id(debug).publish_state("Official app connected: read_param refused");
 
 logger:
   level: VERBOSE #makes uart stream available in esphome logstream
@@ -53,3 +122,15 @@ globals:
      type: std::string
      restore_value: no
      initial_value: '"0000"'
+   - id: expert_bridge_mode_requested
+     type: bool
+     restore_value: no
+     initial_value: 'false'
+   - id: expert_bridge_client_connected
+     type: bool
+     restore_value: no
+     initial_value: 'false'
+   - id: expert_bridge_takeover_active
+     type: bool
+     restore_value: no
+     initial_value: 'false'
