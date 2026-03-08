@@ -1,0 +1,11 @@
+#All packages used
+script: !include components/script.yaml
+globals: !include components/globals.yaml
+sensor: !include components/sensor.yaml
+switch: !include components/switch.yaml
+climate: !include components/climate.yaml
+uart: !include components/uart.yaml
+time: !include components/time.yaml
+text_sensor: !include components/text_sensor.yaml
+binary_sensor: !include components/binary_sensor.yaml
+expert_bridge: !include components/expert_bridge.yaml
