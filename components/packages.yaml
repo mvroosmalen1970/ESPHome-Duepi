@@ -1,11 +1,12 @@
 #All packages used
-script: !include script.yaml
-globals: !include globals.yaml
-sensor: !include sensor.yaml
-switch: !include switch.yaml
-climate: !include climate.yaml
-uart: !include uart.yaml
-time: !include time.yaml
-text_sensor: !include text_sensor.yaml
-#binary_sensor: !include binary_sensor.yaml
-#expert_bridge: !include expert_bridge.yaml
+<<:
+  - !include script.yaml
+  - !include globals.yaml
+  - !include sensor.yaml
+  - !include switch.yaml
+  - !include climate.yaml
+  - !include uart.yaml
+  - !include time.yaml
+  - !include text_sensor.yaml
+#  - !include binary_sensor.yaml
+#  - !include expert_bridge.yaml
