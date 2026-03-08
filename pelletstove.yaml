@@ -39,16 +39,7 @@ substitutions:
 
 packages:
   remote_package_files:
+  duepi:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
-    files: [
-      components/script.yaml, 
-      components/globals.yaml, 
-      components/sensor.yaml, 
-      components/switch.yaml, 
-      components/climate.yaml, 
-      components/uart.yaml, 
-      components/time.yaml, 
-      components/text_sensor.yaml
-      ]
-    ref: main #change if you like to test a beta version
-    refresh: 0d 
+    file: packages.yaml
+    ref: main #change if you like to test a beta version 
