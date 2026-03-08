@@ -6,8 +6,11 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 ![Screenshot_2025-02-21_19-00-56](https://github.com/user-attachments/assets/50f06f76-f7b8-4078-a9bc-d7b59a99f2d2)
 
 ## New:
-- moved all coding to seperate files so future updates are used directly when you flash ESPHome updates.
-- If you like to test a beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number) 
+- moved all coding to seperate files so future updates are used directly when you flash ESPHome updates and included one main package file for smooth future updates.
+- If you like to test a beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number)
+- Thanks to jbjardine the orginal MyDPRemote (or alternative) app can be used too. Set <img width="340" height="44" alt="image" src="https://github.com/user-attachments/assets/eb09b55d-9c77-4616-ab7e-aa74ef422038" /><br />
+  Press the setting (wheel top right), choose local and set IP address (192.168.1.xxx or pelletstove.local), port (2000) and give a name<br />
+  <img width="115" height="177" alt="image" src="https://github.com/user-attachments/assets/8b293272-f4b0-4282-9289-9ecd4ac9b62d" />
 
 ## Prerequisites
 - Hardware: Wemos D1 or ESP32-C3 flashed with **ESPHome**. These devices have a 5V input and integrated CH340 for easy flashing.
