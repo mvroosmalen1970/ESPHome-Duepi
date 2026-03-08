@@ -38,7 +38,6 @@ substitutions:
   rx_pin_esp: '3'    #RX pin on esp module
 
 packages:
-  remote_package_files:
   duepi:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
     file: packages.yaml
