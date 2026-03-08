@@ -1,13 +1,13 @@
 :coffee: [Buy Me A Coffee](https://buymeacoffee.com/mvroosmalen)! :coffee:
 # ESPHome-Duepi
-The Duepi EVO climate platform is a reverse engineered implementation of the app which is controlling Pellet stove heaters using a Duepi Evo Wifi module. With this module it is possible to control your pellet stove with **HomeAssistant** or **Homey**. Optionally one can send a four character code to the stove to test out new commands. 
+The Duepi EVO climate platform is a reverse engineered implementation of the app which is controlling Pellet stove heaters using a Duepi Evo Wifi module. With this module it is possible to control your pellet stove with **HomeAssistant** or **Homey**. Optionally one can send a four character code to the stove to test out new commands.
 <br />
 <img width="437" height="550" alt="image" src="https://github.com/user-attachments/assets/013d3f29-9061-4317-97e5-6874fd74bb2b" />
 ![Screenshot_2025-02-21_19-00-56](https://github.com/user-attachments/assets/50f06f76-f7b8-4078-a9bc-d7b59a99f2d2)
 
 ## New:
 - moved all coding to seperate files so future updates are used directly when you flash ESPHome updates.
-- If you like to test a beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number) 
+- If you like to test a beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number)
 
 ## Prerequisites
 - Hardware: Wemos D1 or ESP32-C3 flashed with **ESPHome**. These devices have a 5V input and integrated CH340 for easy flashing.
@@ -20,7 +20,7 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - Control fan speed (quite, low, middel, medium, **high**) <img width="90" height="32" alt="image" src="https://github.com/user-attachments/assets/1048d35c-573d-4a67-a25d-c7a30c085270" /> <br />
 - Reset errors (ie out of pellet) <br />
 - Automation possible using any of the reported **Sensors** or **Controls**  <br />
-- Send custom commands and read its reponse in debug <br />
+- Optional official app compatibility mode on TCP port 2000 <br />
 - PCB temperature <br />
 - Full history of all **Sensors** or **Controls**  (ie temperature, fanspeed....) <br />
 - DUEPI firmware detected <br />
@@ -33,61 +33,63 @@ https://homey.app/en-us/app/nl.inversion.esphome/ESPhome/ <br />
 https://my.home-assistant.io/redirect/config_flow_start?domain=esphome <br />
 <br />
 
-Paste **pelletstove.yaml** in ESPHome and change: 
+Paste **pelletstove.yaml** in ESPHome and change:
 - !secret encryption_key <br />
 - !secret wifi_ssid <br />
 - !secret wifi_password <br />
 - CreateYourOwn <br />
-- PelletKachelPWD <br />  
+- PelletKachelPWD <br />
 with your own settings / preferences and flash device.
 ```
-encryption:  
-  key: !secret encryption_key  
-wifi:  
-  networks:  
+encryption:
+  key: !secret encryption_key
+wifi:
+  networks:
     - ssid: !secret wifi_ssid
       password: !secret wifi_password
-ota:  
-  - platform: esphome  
-    password: "CreateYourOwn"  
-ap:  
-  ssid: "Pelletkachel Fallback Hotspot"  
+ota:
+  - platform: esphome
+    password: "CreateYourOwn"
+ap:
+  ssid: "Pelletkachel Fallback Hotspot"
   password: "PelletKachelPWD"
 
 substitutions:
-  min_temp: "10"     #set minimum temperature for climate 
-  max_temp: "35"     #set maximum temperature for climate 
+  min_temp: "10"     #set minimum temperature for climate
+  max_temp: "35"     #set maximum temperature for climate
   temp_unit: "°C"    #set climate unit, use "°C" or "°F"
-  tx_pin_esp: '1'    #TX pin on esp module 
+  tx_pin_esp: '1'    #TX pin on esp module
   rx_pin_esp: '3'    #RX pin on esp module
 ```
+If you want to use the official app, enable **Official app compatibility mode** in Home Assistant. While the app is connected, Home Assistant temporarily pauses UART control and resumes automatically when the app disconnects. The compatibility listener uses TCP port `2000`.
+
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
-![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)  
-![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)  
+![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)
+![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)
 ![image](https://github.com/user-attachments/assets/f2125298-5b24-4814-8c65-a8f1f51754c9) <img width="375" height="164" alt="image" src="https://github.com/user-attachments/assets/6f5d6a06-a65b-42c0-be17-6f6b2117be50" />
 
-tx_pin: GPIO-01  
-rx_pin: GPIO-03  
-GND-pin  
-5V-pin  
+tx_pin: GPIO-01
+rx_pin: GPIO-03
+GND-pin
+5V-pin
 
 please report any unknown codes in the debug sensor with a possible explanation of what you think its related to. This will help others and robustness of this code.
 
 If this sounds to complicated contact me for possibilies
 
-### In Home assistent to activate custom commands for DUEPI stoves: 
+### In Home assistent to activate custom commands for DUEPI stoves:
   1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
-  2) Create automation: (with action select your esphome......write)      
-        
+  2) Create automation: (with action select your esphome......write)
+
 ![Image](https://github.com/user-attachments/assets/87e80384-265d-46bc-ab80-0f229b88fc11) <br />
 Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with name of ESPHome yaml<br />
 
-## Confirmed working with:  
+## Confirmed working with:
 - Artel watt 9
 - Artel MeNext
-- Duroflame Rembrand  
+- Duroflame Rembrand
 - Eva Calòr Thelma (DUEPI EVO VM88 Board). Maybe with some limitations
-- Qlima Viola 85 S-Line 
+- Qlima Viola 85 S-Line
 - Qlima Delmara 88 S-Line
 - Interstove Milano
 - NextElite

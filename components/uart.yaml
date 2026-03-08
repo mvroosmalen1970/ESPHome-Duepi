@@ -4,13 +4,13 @@ uart:
   id: uart_bus
   tx_pin: ${tx_pin_esp}
   rx_pin: ${rx_pin_esp}
-  baud_rate: 115200  
+  baud_rate: 115200
   debug:
     direction: RX
     dummy_receiver: true
     after:
       timeout: 50ms
-      delimiter: "&" 
+      delimiter: "&"
     sequence:
       - lambda: |-
             UARTDebug::log_string(direction, bytes);
@@ -18,13 +18,21 @@ uart:
             std::string data_from_server(bytes.begin(), bytes.end());
             std::string status;
             unsigned int checksum = 0;
+            if (id(uart_send) == 10) {
+              // In raw/debug mode, always expose the frame we got back even if it
+              // does not match the fixed 10-byte parser used by the runtime flow.
+              id(debug_rx).publish_state(data_from_server);
+            }
+            if (id(expert_bridge_takeover_active)) {
+              return;
+            }
             if (data_from_server.length() == 10) {
               status=data_from_server.substr(1, 6);
               for (size_t i = 0; i < status.size(); i++) {
                 checksum += static_cast<unsigned char>(status[i]);
               }
               checksum = checksum & 0xFF;
-            } 
+            }
             if (data_from_server.substr(7, 2) == str_sprintf("%X", checksum)) {
               switch(id(uart_send)) {
                 case 1: {
@@ -44,26 +52,26 @@ uart:
                   const int STATE_COOLDOWN1       = 0x0801;
                   const int STATE_COOLDOWN2       = 0x0802;
                   const int STATE_ECO             = 0x1000;
-                  const int STATE_ECO_COOL1       = 0x1001; 
+                  const int STATE_ECO_COOL1       = 0x1001;
                   const int STATE_ECO_COOL2       = 0x1002;
                   const int STATE_ECO_OFF         = 0x1003;
                   int currentstate = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   int kachel_aan = 1;
-                  if (STATE_IGNITION == currentstate) { status = "Ignition starting";} 
-                  else if (STATE_LOAD_WOOD == currentstate) { status = "Ignition starting, load wood"; } 
-                  else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; } 
-                  else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; } 
-                  else if (STATE_DELAYED_ON == currentstate) { status = "Fire on, wait for cooldown"; } 
-                  else if (STATE_FIRE_ON_E693 == currentstate) { status = "Ignition starting, fire on E693"; } 
+                  if (STATE_IGNITION == currentstate) { status = "Ignition starting";}
+                  else if (STATE_LOAD_WOOD == currentstate) { status = "Ignition starting, load wood"; }
+                  else if (STATE_FIRE_ON == currentstate) { status = "Ignition starting, fire on"; }
+                  else if (STATE_FIRE_ON_VENT_ON == currentstate) { status = "Ignition starting, fire on and vent"; }
+                  else if (STATE_DELAYED_ON == currentstate) { status = "Fire on, wait for cooldown"; }
+                  else if (STATE_FIRE_ON_E693 == currentstate) { status = "Ignition starting, fire on E693"; }
                   else if (STATE_LOAD_WOOD_V100 == currentstate) { status = "Ignition starting, load wood (V100)"; }
                   else if (STATE_IGNITION_V100 == currentstate) { status = "Ignition starting (V100)"; }
-                  else if (STATE_ON == currentstate) { status = "Stove On"; } 
-                  else if (STATE_ON_CLEAN == currentstate) { status = "Stove On, Clean"; } 
-                  else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; } 
-                  else if (STATE_ECO == currentstate) { status = "Eco Idle"; } 
-                  else if (STATE_ECO_COOL1 == currentstate) { status = "Eco Idle, Cooldown sequence 1"; } 
-                  else if (STATE_ECO_COOL2 == currentstate) { status = "Eco Idle, Cooldown sequence 2"; } 
-                  else if (STATE_ECO_OFF == currentstate) { status = "Eco Idle, OFF"; }  
+                  else if (STATE_ON == currentstate) { status = "Stove On"; }
+                  else if (STATE_ON_CLEAN == currentstate) { status = "Stove On, Clean"; }
+                  else if (STATE_FIRE_CLEAN == currentstate) { status = "Cleaning"; }
+                  else if (STATE_ECO == currentstate) { status = "Eco Idle"; }
+                  else if (STATE_ECO_COOL1 == currentstate) { status = "Eco Idle, Cooldown sequence 1"; }
+                  else if (STATE_ECO_COOL2 == currentstate) { status = "Eco Idle, Cooldown sequence 2"; }
+                  else if (STATE_ECO_OFF == currentstate) { status = "Eco Idle, OFF"; }
                   else if (STATE_STOP_SEQUENCE == currentstate) {
                     status = "Stove power off";
                     kachel_aan = 0;
@@ -191,9 +199,9 @@ uart:
                 }
                 case 8: {
                   int temp = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (temp>= ${min_temp}  && temp <= ${max_temp} ) { id(Stove).target_temperature = temp; } 
+                  if (temp>= ${min_temp}  && temp <= ${max_temp} ) { id(Stove).target_temperature = temp; }
                   else { id(debug).publish_state("Error temperature out of range :"+temp); }
-                  id(uart_send) = 0;                  
+                  id(uart_send) = 0;
                   break;
                 }
                 case 9: {
@@ -205,37 +213,40 @@ uart:
                   break;
                 }
                 case 10: {
+                  id(debug_rx).publish_state(data_from_server);
                   id(debug).publish_state("Response :"+data_from_server);
                   id(uart_send) = 0;
                   break;
                 }
                 case 11: {
                   id(PCB_temp).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
-                  id(uart_send) = 0;                  
+                  id(uart_send) = 0;
                   break;
                 }
                 case 12: {
                   id(firmware)=data_from_server.substr(1, 4);
                   id(versie).publish_state("DUEPI v"+id(firmware));
-                  id(uart_send) = 0;                  
+                  id(uart_send) = 0;
                   break;
                 }
                 case 13: {
                   id(total_burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
-                  id(uart_send) = 0;                  
+                  id(uart_send) = 0;
                   break;
                 }
                 case 14: {
                   id(burn_time).publish_state(std::stoi(data_from_server.substr(1, 6), nullptr, 16));
-                  id(uart_send) = 0;                  
+                  id(uart_send) = 0;
                   break;
                 }
                 default: {
+                  id(debug_rx).publish_state(data_from_server);
                   id(debug).publish_state("Unknown UART command :"+id(uart_send));
                   id(uart_send) = 0;
                 }
-              } 
-            } else { 
-                id(debug).publish_state("Error checksum failed :"+data_from_server); 
+              }
+            } else {
+                id(debug_rx).publish_state(data_from_server);
+                id(debug).publish_state("Error checksum failed :"+data_from_server);
                 id(uart_send) = 0;
               }
