@@ -9,4 +9,3 @@
   - !include time.yaml
   - !include text_sensor.yaml
   - !include binary_sensor.yaml
-  - !include expert_bridge.yaml
