@@ -41,4 +41,4 @@ packages:
   duepi:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
     file: components/packages.yaml
-    ref: main #change if you like to test a beta version 
+    ref: main #change if you like to test a beta version
