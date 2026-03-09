@@ -7,7 +7,6 @@ esphome:
     - <string>
     - <vector>
     - <esphome/components/binary_sensor/binary_sensor.h>
-    - <esphome/components/network/util.h>
     - <esphome/components/socket/socket.h>
     - <esphome/components/text_sensor/text_sensor.h>
     - <esphome/components/uart/uart_component.h>
@@ -56,14 +55,6 @@ esphome:
           bool is_connected() const { return this->client_socket_ != nullptr; }
 
           void loop() {
-            if (!esphome::network::is_connected()) {
-              if (this->listener_socket_ != nullptr || this->client_socket_ != nullptr) {
-                this->close_client_("Official app compatibility network down");
-                this->close_listener_();
-              }
-              return;
-            }
-
             if (!this->enabled_) {
               return;
             }
