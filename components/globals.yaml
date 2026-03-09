@@ -4,7 +4,6 @@ esphome:
       then:
         - lambda: |-
             id(uart_send) = 0;
-            id(expert_bridge_mode_requested) = false;
             id(expert_bridge_client_connected) = false;
             id(expert_bridge_takeover_active) = false;
             id(installer_pending_param) = -1;
@@ -125,10 +124,6 @@ globals:
      type: std::string
      restore_value: no
      initial_value: '"0000"'
-   - id: expert_bridge_mode_requested
-     type: bool
-     restore_value: no
-     initial_value: 'false'
    - id: expert_bridge_client_connected
      type: bool
      restore_value: no

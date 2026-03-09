@@ -25,11 +25,9 @@ switch:
     optimistic: true
     turn_on_action:
       - lambda: |-
-          id(expert_bridge_mode_requested) = true;
           id(debug).publish_state("Official app compatibility enabled on port 2000");
     turn_off_action:
       - lambda: |-
-          id(expert_bridge_mode_requested) = false;
           id(debug).publish_state("Official app compatibility disabled");
   - platform: template
     name: "Write installer value"

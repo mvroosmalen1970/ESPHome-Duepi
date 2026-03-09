@@ -344,5 +344,5 @@ esphome:
                                            id(expert_tcp_bridge_connected_bs), &id(uart_send),
                                            &id(expert_bridge_client_connected), &id(expert_bridge_takeover_active));
 
-        bridge.set_enabled(id(expert_bridge_mode_requested));
+        bridge.set_enabled(id(expert_tcp_bridge_mode).state);
         bridge.loop();
