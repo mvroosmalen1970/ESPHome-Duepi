@@ -8,22 +8,33 @@ text_sensor:
     id: "debug"
     entity_category: diagnostic
     disabled_by_default: true
+    internal: true
     update_interval: 10s
   - platform: template
     name: "debug tx"
     id: debug_tx
     entity_category: diagnostic
     disabled_by_default: true
+    internal: true
     update_interval: 10s
   - platform: template
     name: "debug rx"
     id: debug_rx
     entity_category: diagnostic
     disabled_by_default: true
+    internal: true
     update_interval: 10s
   - platform: template
     name: "debug last payload"
     id: debug_last_payload
+    entity_category: diagnostic
+    disabled_by_default: true
+    internal: true
+    update_interval: 10s
+  - platform: template
+    name: "Installer status"
+    id: installer_status
+    icon: "mdi:clipboard-text-clock-outline"
     entity_category: diagnostic
     disabled_by_default: true
     update_interval: 10s
@@ -39,6 +50,7 @@ text:
     id: debug_raw_payload_input
     entity_category: config
     disabled_by_default: true
+    internal: true
     mode: TEXT
     optimistic: true
     update_interval: 10s

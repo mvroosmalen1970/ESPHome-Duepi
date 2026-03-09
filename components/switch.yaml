@@ -1,5 +1,22 @@
 switch:
   - platform: template
+    name: "Installer mode"
+    id: installer_mode
+    icon: "mdi:account-hard-hat"
+    entity_category: config
+    disabled_by_default: true
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    turn_on_action:
+      - lambda: |-
+          id(installer_status).publish_state("Installer mode enabled");
+    turn_off_action:
+      - lambda: |-
+          id(installer_status).publish_state("Installer mode off");
+          id(installer_pending_param) = -1;
+          id(installer_pending_value) = -1;
+      - switch.turn_off: arm_installer_write
+  - platform: template
     name: "Official app compatibility mode"
     id: expert_tcp_bridge_mode
     icon: "mdi:cellphone-link"
@@ -8,12 +25,74 @@ switch:
     optimistic: true
     turn_on_action:
       - lambda: |-
-          id(expert_bridge_mode_requested) = true;
           id(debug).publish_state("Official app compatibility enabled on port 2000");
     turn_off_action:
       - lambda: |-
-          id(expert_bridge_mode_requested) = false;
           id(debug).publish_state("Official app compatibility disabled");
+  - platform: template
+    name: "Write installer value"
+    id: arm_installer_write
+    icon: "mdi:content-save-cog-outline"
+    entity_category: config
+    disabled_by_default: true
+    restore_mode: ALWAYS_OFF
+    optimistic: true
+    turn_on_action:
+      - if:
+          condition:
+            switch.is_on: installer_mode
+          then:
+            - if:
+                condition:
+                  lambda: 'return !id(expert_bridge_client_connected);'
+                then:
+                  - wait_until:
+                      condition:
+                        lambda: 'return (id(uart_send) == 0);'
+                      timeout: 1s
+                  - if:
+                      condition:
+                        lambda: 'return (id(uart_send) == 0);'
+                      then:
+                        - lambda: |-
+                            const int param = static_cast<int>(id(installer_parameter_number).state) & 0xFF;
+                            const int value = static_cast<int>(id(installer_value_number).state) & 0xFF;
+                            id(installer_pending_param) = param;
+                            id(installer_pending_value) = value;
+                            id(installer_status).publish_state(
+                                "Writing PR" + std::to_string(param) + " = " + std::to_string(value) + "...");
+                            id(uart_send) = 16;
+                        - script.execute:
+                            id: UART_RAW_CMD
+                            payload_in: !lambda |-
+                              return str_sprintf(
+                                  "S%02X%02X0", id(installer_pending_param) & 0xFF, id(installer_pending_value) & 0xFF);
+                        - script.wait: UART_RAW_CMD
+                        - wait_until:
+                            condition:
+                              lambda: 'return (id(uart_send) == 0);'
+                            timeout: 500ms
+                        - if:
+                            condition:
+                              lambda: 'return (id(uart_send) == 16);'
+                            then:
+                              - lambda: |-
+                                  const int param = id(installer_pending_param);
+                                  id(installer_status).publish_state(
+                                      "Write PR" + std::to_string(param) + " timed out");
+                                  id(installer_pending_param) = -1;
+                                  id(installer_pending_value) = -1;
+                                  id(uart_send) = 0;
+                      else:
+                        - lambda: |-
+                            id(installer_status).publish_state("Write installer value refused: UART busy");
+                else:
+                  - lambda: |-
+                      id(installer_status).publish_state("Official app connected: Home Assistant control paused");
+          else:
+            - lambda: |-
+                id(installer_status).publish_state("Enable Installer mode first");
+      - switch.turn_off: arm_installer_write
   - platform: template
     name: "Reset"
     id: reset_sw

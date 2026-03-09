@@ -26,13 +26,31 @@ uart:
             if (id(expert_bridge_takeover_active)) {
               return;
             }
-            if (data_from_server.length() == 10) {
-              status=data_from_server.substr(1, 6);
-              for (size_t i = 0; i < status.size(); i++) {
-                checksum += static_cast<unsigned char>(status[i]);
+            if (data_from_server.length() != 10) {
+              if (id(uart_send) == 15) {
+                const int param = id(installer_pending_param);
+                id(installer_status).publish_state(
+                    "Read PR" + std::to_string(param) + " failed: unexpected frame");
+              } else if (id(uart_send) == 16) {
+                const int param = id(installer_pending_param);
+                id(installer_status).publish_state(
+                    "Write PR" + std::to_string(param) + " failed: unexpected frame");
+              } else if (id(uart_send) == 10) {
+                id(debug).publish_state("Response :" + data_from_server);
+              } else {
+                id(debug_rx).publish_state(data_from_server);
+                id(debug).publish_state("Unexpected UART frame :" + data_from_server);
               }
-              checksum = checksum & 0xFF;
+              id(installer_pending_param) = -1;
+              id(installer_pending_value) = -1;
+              id(uart_send) = 0;
+              return;
             }
+            status=data_from_server.substr(1, 6);
+            for (size_t i = 0; i < status.size(); i++) {
+              checksum += static_cast<unsigned char>(status[i]);
+            }
+            checksum = checksum & 0xFF;
             if (data_from_server.substr(7, 2) == str_sprintf("%X", checksum)) {
               switch(id(uart_send)) {
                 case 1: {
@@ -239,14 +257,54 @@ uart:
                   id(uart_send) = 0;
                   break;
                 }
+                case 15: {
+                  const int param = id(installer_pending_param);
+                  const int value = std::stoi(data_from_server.substr(1, 2), nullptr, 16);
+                  id(installer_value_number).publish_state(value);
+                  id(installer_status).publish_state(
+                      "Read PR" + std::to_string(param) + " = " + std::to_string(value));
+                  id(installer_pending_param) = -1;
+                  id(installer_pending_value) = -1;
+                  id(uart_send) = 0;
+                  break;
+                }
+                case 16: {
+                  const int param = id(installer_pending_param);
+                  const int value = id(installer_pending_value);
+                  if (data_from_server.substr(1, 6) == "000000") {
+                    id(installer_status).publish_state(
+                        "Write PR" + std::to_string(param) + " = " + std::to_string(value) + " acknowledged");
+                  } else {
+                    id(installer_status).publish_state(
+                        "Write PR" + std::to_string(param) + " unexpected response " + data_from_server);
+                  }
+                  id(installer_pending_param) = -1;
+                  id(installer_pending_value) = -1;
+                  id(uart_send) = 0;
+                  break;
+                }
                 default: {
                   id(debug_rx).publish_state(data_from_server);
                   id(debug).publish_state("Unknown UART command :"+id(uart_send));
+                  id(installer_pending_param) = -1;
+                  id(installer_pending_value) = -1;
                   id(uart_send) = 0;
                 }
               }
             } else {
-                id(debug_rx).publish_state(data_from_server);
-                id(debug).publish_state("Error checksum failed :"+data_from_server);
+                if (id(uart_send) == 15) {
+                  const int param = id(installer_pending_param);
+                  id(installer_status).publish_state(
+                      "Read PR" + std::to_string(param) + " failed: checksum error");
+                } else if (id(uart_send) == 16) {
+                  const int param = id(installer_pending_param);
+                  id(installer_status).publish_state(
+                      "Write PR" + std::to_string(param) + " failed: checksum error");
+                } else {
+                  id(debug_rx).publish_state(data_from_server);
+                  id(debug).publish_state("Error checksum failed :"+data_from_server);
+                }
+                id(installer_pending_param) = -1;
+                id(installer_pending_value) = -1;
                 id(uart_send) = 0;
               }

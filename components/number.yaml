@@ -1,0 +1,78 @@
+number:
+  - platform: template
+    name: "Installer parameter"
+    id: installer_parameter_number
+    icon: "mdi:numeric"
+    entity_category: config
+    disabled_by_default: true
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+    min_value: 0
+    max_value: 255
+    step: 1
+    mode: box
+    set_action:
+      - if:
+          condition:
+            switch.is_on: installer_mode
+          then:
+            - if:
+                condition:
+                  lambda: 'return !id(expert_bridge_client_connected);'
+                then:
+                  - wait_until:
+                      condition:
+                        lambda: 'return (id(uart_send) == 0);'
+                      timeout: 1s
+                  - if:
+                      condition:
+                        lambda: 'return (id(uart_send) == 0);'
+                      then:
+                        - lambda: |-
+                            const int param = static_cast<int>(x) & 0xFF;
+                            id(installer_pending_param) = param;
+                            id(installer_pending_value) = -1;
+                            id(installer_status).publish_state("Reading PR" + std::to_string(param) + "...");
+                            id(uart_send) = 15;
+                        - script.execute:
+                            id: UART_RAW_CMD
+                            payload_in: !lambda |-
+                              return str_sprintf("L%02X000", id(installer_pending_param) & 0xFF);
+                        - script.wait: UART_RAW_CMD
+                        - wait_until:
+                            condition:
+                              lambda: 'return (id(uart_send) == 0);'
+                            timeout: 500ms
+                        - if:
+                            condition:
+                              lambda: 'return (id(uart_send) == 15);'
+                            then:
+                              - lambda: |-
+                                  const int param = id(installer_pending_param);
+                                  id(installer_status).publish_state("Read PR" + std::to_string(param) + " timed out");
+                                  id(installer_pending_param) = -1;
+                                  id(installer_pending_value) = -1;
+                                  id(uart_send) = 0;
+                      else:
+                        - lambda: |-
+                            id(installer_status).publish_state("Read installer parameter refused: UART busy");
+                else:
+                  - lambda: |-
+                      id(installer_status).publish_state("Official app connected: Home Assistant control paused");
+          else:
+            - lambda: |-
+                id(installer_status).publish_state("Enable Installer mode first");
+  - platform: template
+    name: "Installer value / last read"
+    id: installer_value_number
+    icon: "mdi:numeric"
+    entity_category: config
+    disabled_by_default: true
+    optimistic: true
+    restore_value: true
+    initial_value: 0
+    min_value: 0
+    max_value: 255
+    step: 1
+    mode: box
