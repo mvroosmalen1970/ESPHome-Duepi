@@ -25,6 +25,7 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - Reset errors (ie out of pellet) <br />
 - Automation possible using any of the reported **Sensors** or **Controls**  <br />
 - Optional official app compatibility mode on TCP port 2000 <br />
+- Hidden installer mode for advanced service parameter access <br />
 - PCB temperature <br />
 - Full history of all **Sensors** or **Controls**  (ie temperature, fanspeed....) <br />
 - DUEPI firmware detected <br />
@@ -66,6 +67,8 @@ substitutions:
   rx_pin_esp: '3'    #RX pin on esp module
 ```
 If you want to use the official app, enable **Official app compatibility mode** in Home Assistant. While the app is connected, Home Assistant temporarily pauses UART control and resumes automatically when the app disconnects. The compatibility listener uses TCP port `2000`.
+
+If you need service-level parameter access, hidden installer entities are also available in Home Assistant. They stay disabled by default so the normal device page remains clean.
 
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
 ![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)

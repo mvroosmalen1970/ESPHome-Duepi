@@ -3,6 +3,7 @@
   - !include script.yaml
   - !include globals.yaml
   - !include sensor.yaml
+  - !include number.yaml
   - !include switch.yaml
   - !include climate.yaml
   - !include uart.yaml
