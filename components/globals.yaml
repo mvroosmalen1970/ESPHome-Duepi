@@ -435,6 +435,9 @@ api:
                   condition:
                     lambda: 'return (id(uart_send) == 10);'
                   then:
+                    - lambda: |-
+                        id(uart_send) = 15;
+                        id(installer_pending_param) = param;
                     - script.execute:
                         id: UART_RAW_CMD
                         payload_in: !lambda |-
