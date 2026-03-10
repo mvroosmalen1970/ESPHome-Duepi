@@ -11,6 +11,30 @@ The Duepi EVO climate platform is a reverse engineered implementation of the app
 - Thanks to jbjardine the orginal MyDPRemote (or alternative) app can be used too. Set <img width="340" height="44" alt="image" src="https://github.com/user-attachments/assets/eb09b55d-9c77-4616-ab7e-aa74ef422038" /><br />
   Press the setting (wheel top right), choose local and set IP address (192.168.1.xxx or pelletstove.local), port (2000) and give a name<br />
   <img width="115" height="177" alt="image" src="https://github.com/user-attachments/assets/8b293272-f4b0-4282-9289-9ecd4ac9b62d" />
+- Hidden installer mode for advanced service parameter can be activated via <img width="309" height="41" alt="image" src="https://github.com/user-attachments/assets/ac82e49b-09df-4a33-9d75-7eb0ec873f45" /><br /> Now you can retreive parameter settings from your stove by running this yaml automation (or manually by entering numbers in installer parameter)
+```
+alias: Pelletkachel full Parameter Scan
+description: Runs through all 107 parameters 
+triggers: []
+conditions: []
+actions:
+  - repeat:
+      count: 107
+      sequence:
+        - action: esphome.pelletkachel_read_param
+          data:
+            param: "{{ repeat.index }}"
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 3
+            milliseconds: 0
+mode: single
+```
+and can be found reported in Installer status (diagnostic):<br /><img width="576" height="597" alt="image" src="https://github.com/user-attachments/assets/aa50fdff-72d6-45fb-b2a6-e2b137a8bae8" /><br />
+
+The parameters can be updated filling the fields:<br />
+<img width="305" height="172" alt="image" src="https://github.com/user-attachments/assets/a27802d8-fdae-4b05-a85c-da82fff0e404" /><br />and activating <img width="287" height="41" alt="image" src="https://github.com/user-attachments/assets/5995bbcc-d131-4f1a-a9ec-54353da5120a" />
 
 
 ## Prerequisites
