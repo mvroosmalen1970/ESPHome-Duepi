@@ -9,6 +9,7 @@ number:
     restore_value: true
     initial_value: 0
     min_value: 0
+    accuracy_decimals: 0
     max_value: 255
     step: 1
     mode: box
@@ -72,6 +73,7 @@ number:
     optimistic: true
     restore_value: true
     initial_value: 0
+    accuracy_decimals: 0
     min_value: 0
     max_value: 255
     step: 1
