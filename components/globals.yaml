@@ -29,7 +29,7 @@ esphome:
             id(exh_fan_speed).publish_state(0);
             id(burner_status).publish_state("All OK, startup");
             id(Stove).target_temperature = 21.0;
-            id(versie).publish_state("v26.03.01");
+            id(versie).publish_state("v26.03.02");
             id(expert_tcp_bridge_connected_bs).publish_state(false);
             id(installer_status).publish_state("Installer mode off");
   on_loop:
