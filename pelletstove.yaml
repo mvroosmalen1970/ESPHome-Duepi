@@ -9,6 +9,12 @@ api:
 esp8266:
   board: d1
 
+logger:
+  level: INFO
+  baud_rate: 0 #disable logging over uart
+  logs:
+    uart_debug: NONE
+
 #use this for esp-c3 mini
 #esp32
   #board: lolin_c3_mini
