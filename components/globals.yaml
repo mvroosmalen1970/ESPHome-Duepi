@@ -448,12 +448,6 @@ api:
               - lambda: |-
                   id(debug).publish_state("Official app connected: read_param refused");
 
-logger:
-  level: INFO
-  baud_rate: 0 #disable logging over uart
-  logs:
-    uart_debug: NONE
-
 captive_portal:
 
 globals:
