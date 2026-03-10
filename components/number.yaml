@@ -64,7 +64,7 @@ number:
             - lambda: |-
                 id(installer_status).publish_state("Enable Installer mode first");
   - platform: template
-    name: "Installer value / last read"
+    name: "Installer value | last read"
     id: installer_value_number
     icon: "mdi:numeric"
     entity_category: config
