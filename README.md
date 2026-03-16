@@ -111,8 +111,21 @@ If this sounds to complicated contact me for possibilies
 ### In Home assistent to activate custom commands for DUEPI stoves:
   1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
   2) Create automation: (with action select your esphome......write)
-
-![Image](https://github.com/user-attachments/assets/87e80384-265d-46bc-ab80-0f229b88fc11) <br />
+```
+alias: send command to pellet kachel
+description: ""
+triggers:
+  - trigger: state
+    entity_id:
+      - input_text.pelletkachel_command
+conditions: []
+actions:
+  - action: esphome.pelletkachel_write
+    data:
+      command: "{{ states('input_text.pelletkachel_command') }}"
+mode: queued
+max: 10
+```
 Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with name of ESPHome yaml<br />
 
 ## Confirmed working with:
