@@ -36,6 +36,7 @@ and can be found reported in Installer status (diagnostic):<br /><img width="576
 The parameters can be updated filling the fields:<br />
 <img width="305" height="172" alt="image" src="https://github.com/user-attachments/assets/a27802d8-fdae-4b05-a85c-da82fff0e404" /><br />and activating <img width="287" height="41" alt="image" src="https://github.com/user-attachments/assets/5995bbcc-d131-4f1a-a9ec-54353da5120a" />
 
+If you are updating please update **pelletstove.yaml** too!!!! (as we made some major changes!!)
 
 ## Prerequisites
 - Hardware: Wemos D1 or ESP32-C3 flashed with **ESPHome**. These devices have a 5V input and integrated CH340 for easy flashing.
