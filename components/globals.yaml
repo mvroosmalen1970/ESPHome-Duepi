@@ -119,7 +119,7 @@ esphome:
           bool takeover_ready_{false};
           uint32_t next_listener_retry_ms_{0};
 
-          std::unique_ptr<Socket> listener_socket_{nullptr};
+          std::unique_ptr<esphome::socket::Socket> listener_socket_{nullptr};
           std::unique_ptr<Socket> client_socket_{nullptr};
           std::string client_identifier_{};
           std::vector<uint8_t> pending_rx_bytes_{};
