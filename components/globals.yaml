@@ -196,7 +196,7 @@ esphome:
               this->next_listener_retry_ms_ = millis() + 5000;
               return;
             }
-
+            
             this->listener_socket_.reset(reinterpret_cast<esphome::socket::Socket*>(listener.release()));
             this->next_listener_retry_ms_ = 0;
             this->publish_debug_("Official app compatibility listening on port " + std::to_string(this->port_));
