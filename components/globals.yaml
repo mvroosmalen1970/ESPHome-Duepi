@@ -29,7 +29,6 @@ esphome:
             id(exh_fan_speed).publish_state(0);
             id(burner_status).publish_state("All OK, startup");
             id(Stove).target_temperature = 21.0;
-            id(versie).publish_state("v26.03.02");
             id(expert_tcp_bridge_connected_bs).publish_state(false);
             id(installer_status).publish_state("Installer mode off");
   on_loop:
@@ -197,6 +196,7 @@ esphome:
               this->next_listener_retry_ms_ = millis() + 5000;
               return;
             }
+            
             this->listener_socket_.reset(reinterpret_cast<esphome::socket::Socket*>(listener.release()));
             this->next_listener_retry_ms_ = 0;
             this->publish_debug_("Official app compatibility listening on port " + std::to_string(this->port_));
