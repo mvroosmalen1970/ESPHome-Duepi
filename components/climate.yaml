@@ -15,43 +15,52 @@ climate:
     target_temperature_change_action:
         - if:
             condition:
-              lambda: 'return !id(expert_bridge_client_connected);'
+              lambda: 'return id(boot_restore_in_progress) || id(climate_sync_in_progress);'
             then:
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 1s
-              - script.execute:
-                  id: UART_CMD
-                  command_in: !lambda |-
-                    std::string str;
-                    int temp;
-                    temp=id(Stove).target_temperature;
-                    if (temp<${min_temp} || temp>${max_temp}) {
-                      id(debug).publish_state("Temperature out of range. Set  to average min/max temp");
-                      temp=( ${min_temp} + ${max_temp} )/2;
-                    }
-                    str=str_sprintf("%X", temp);
-                    if (str.length()==1) {
-                      str="F20" + str;
-                    } else{
-                      str="F2" + str;
-                    }
-                    id(uart_send) = 9;
-                    return str;
-              - script.wait: UART_CMD
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 100ms
+              - lambda: |-
+                  id(debug).publish_state(id(boot_restore_in_progress)
+                                              ? "Target temperature update suppressed during boot restore"
+                                              : "Target temperature update suppressed during stove sync");
+            else:
               - if:
                   condition:
-                    lambda: 'return (id(debug).state != "OK");'
+                    lambda: 'return !id(expert_bridge_client_connected);'
                   then:
-                    - lambda: id(debug).publish_state("Stove temp change failed");
-            else:
-              - lambda: |-
-                  id(debug).publish_state("Official app connected: target temperature refused");
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 1s
+                    - script.execute:
+                        id: UART_CMD
+                        command_in: !lambda |-
+                          std::string str;
+                          int temp;
+                          temp=id(Stove).target_temperature;
+                          if (temp<${min_temp} || temp>${max_temp}) {
+                            id(debug).publish_state("Temperature out of range. Set  to average min/max temp");
+                            temp=( ${min_temp} + ${max_temp} )/2;
+                          }
+                          str=str_sprintf("%X", temp);
+                          if (str.length()==1) {
+                            str="F20" + str;
+                          } else{
+                            str="F2" + str;
+                          }
+                          id(uart_send) = 9;
+                          return str;
+                    - script.wait: UART_CMD
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 100ms
+                    - if:
+                        condition:
+                          lambda: 'return (id(debug).state != "OK");'
+                        then:
+                          - lambda: id(debug).publish_state("Stove temp change failed");
+                  else:
+                    - lambda: |-
+                        id(debug).publish_state("Official app connected: target temperature refused");
     fan_mode_quiet_action:
       then:
         - lambda: id(fan_mode) = 1;
@@ -71,65 +80,83 @@ climate:
       then:
         - if:
             condition:
-              lambda: 'return !id(expert_bridge_client_connected);'
+              lambda: 'return id(boot_restore_in_progress) || id(climate_sync_in_progress);'
             then:
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 1s
-              - script.execute:
-                  id: UART_CMD
-                  command_in: !lambda |-
-                    id(debug).publish_state("Heat On");
-                    id(uart_send) = 9;
-                    std::string str;
-                    if (id(firmware) == "9200") { str="F005"; }
-                    else if (id(firmware) == "E670") { str="F006"; }
-                    else if (id(firmware) == "E693") { str="F006"; }
-                    else if (id(firmware) == "V100") { str="F006"; }
-                    else { str="F001"; }
-                    return str;
-              - script.wait: UART_CMD
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 100ms
+              - lambda: |-
+                  id(debug).publish_state(id(boot_restore_in_progress)
+                                              ? "Heat On suppressed during boot restore"
+                                              : "Heat On suppressed during stove sync");
+            else:
               - if:
                   condition:
-                    lambda: 'return (id(debug).state != "OK");'
+                    lambda: 'return !id(expert_bridge_client_connected);'
                   then:
-                    - lambda: id(debug).publish_state("Stove failed Heat On");
-              - lambda: id(uart_send) = 1;
-            else:
-              - lambda: |-
-                  id(debug).publish_state("Official app connected: heat mode refused");
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 1s
+                    - script.execute:
+                        id: UART_CMD
+                        command_in: !lambda |-
+                          id(debug).publish_state("Heat On");
+                          id(uart_send) = 9;
+                          std::string str;
+                          if (id(firmware) == "9200") { str="F005"; }
+                          else if (id(firmware) == "E670") { str="F006"; }
+                          else if (id(firmware) == "E693") { str="F006"; }
+                          else if (id(firmware) == "V100") { str="F006"; }
+                          else { str="F001"; }
+                          return str;
+                    - script.wait: UART_CMD
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 100ms
+                    - if:
+                        condition:
+                          lambda: 'return (id(debug).state != "OK");'
+                        then:
+                          - lambda: id(debug).publish_state("Stove failed Heat On");
+                    - lambda: id(uart_send) = 1;
+                  else:
+                    - lambda: |-
+                        id(debug).publish_state("Official app connected: heat mode refused");
     off_mode:
       then:
         - if:
             condition:
-              lambda: 'return !id(expert_bridge_client_connected);'
+              lambda: 'return id(boot_restore_in_progress) || id(climate_sync_in_progress);'
             then:
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 1s
               - lambda: |-
-                  id(debug).publish_state("Heat OFF");
-                  id(uart_send) = 9;
-              - uart.write: "\x1bRF000058&"
-              - wait_until:
-                  condition:
-                    lambda: 'return (id(uart_send) == 0);'
-                  timeout: 100ms
+                  id(debug).publish_state(id(boot_restore_in_progress)
+                                              ? "Heat OFF suppressed during boot restore"
+                                              : "Heat OFF suppressed during stove sync");
+            else:
               - if:
                   condition:
-                    lambda: 'return (id(debug).state != "OK");'
+                    lambda: 'return !id(expert_bridge_client_connected);'
                   then:
-                    - lambda: id(debug).publish_state("Stove failed Heat Off");
-              - lambda: id(uart_send) = 1;
-            else:
-              - lambda: |-
-                  id(debug).publish_state("Official app connected: off mode refused");
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 1s
+                    - lambda: |-
+                        id(debug).publish_state("Heat OFF");
+                        id(uart_send) = 9;
+                    - uart.write: "\x1bRF000058&"
+                    - wait_until:
+                        condition:
+                          lambda: 'return (id(uart_send) == 0);'
+                        timeout: 100ms
+                    - if:
+                        condition:
+                          lambda: 'return (id(debug).state != "OK");'
+                        then:
+                          - lambda: id(debug).publish_state("Stove failed Heat Off");
+                    - lambda: id(uart_send) = 1;
+                  else:
+                    - lambda: |-
+                        id(debug).publish_state("Official app connected: off mode refused");
     visual:
       min_temperature: "${min_temp} ${temp_unit}"
       max_temperature: "${max_temp} ${temp_unit}"

@@ -108,12 +108,17 @@ uart:
                   }
                   id(burner_status).publish_state(status);
                   if (kachel_aan == 0 && id(Stove).mode == CLIMATE_MODE_HEAT) {
+                    id(climate_sync_in_progress) = true;
                     id(Stove).make_call().set_mode("OFF").perform();
+                    id(climate_sync_in_progress) = false;
                     id(debug).publish_state("Off, stove<>climate");
                   } else if (kachel_aan == 1 && id(Stove).mode == CLIMATE_MODE_OFF) {
+                    id(climate_sync_in_progress) = true;
                     id(Stove).make_call().set_mode("HEAT").perform();
+                    id(climate_sync_in_progress) = false;
                     id(debug).publish_state("HEAT, stove<>climate");
                   }
+                  id(boot_restore_in_progress) = false;
                   id(uart_send) = 2;
                   break;
                 }
