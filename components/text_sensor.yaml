@@ -49,7 +49,7 @@ text_sensor:
     icon: 'mdi:shape-outline'
     update_interval: 6h
   - platform: template
-    name: "Pressure switch status"
+    name: "Pellet hopper seal"
     id: pressure_switch_status
     icon: 'mdi:gauge'
     update_interval: 10s

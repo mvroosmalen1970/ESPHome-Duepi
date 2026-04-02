@@ -286,12 +286,12 @@ uart:
                 case 17: {
                   std::string inputs_state = data_from_server.substr(1, 4);
                   if (inputs_state == "0100") {
-                    status = "OK";
+                    status = "Sealed";
                   } else if (inputs_state == "0300") {
-                    status = "Pressure";
+                    status = "Pressure loss";
                   } else {
                     status = "Unknown " + inputs_state;
-                    id(debug).publish_state("Unknown pressure switch state :" + data_from_server);
+                    id(debug).publish_state("Unknown hopper seal state :" + data_from_server);
                   }
                   id(pressure_switch_status).publish_state(status);
                   id(uart_send) = 0;
