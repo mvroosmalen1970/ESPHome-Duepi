@@ -104,6 +104,12 @@ time:
                     condition:
                       lambda: 'return (id(uart_send) == 1);'
                     timeout: 100ms
+                - lambda: id(uart_send) = 17;
+                - uart.write: "\x1bRC000055&" #GET_INPUTS / pressostato state
+                - wait_until:
+                    condition:
+                      lambda: 'return (id(uart_send) == 0);'
+                    timeout: 100ms
                 - lambda: id(uart_send) = 8;
                 - uart.write: "\x1bRC60005B&" #GET_SETPOINT
                 - wait_until:
@@ -118,10 +124,16 @@ time:
                     timeout: 100ms
                 - if:
                     condition:
-                      lambda: 'return (id(firmware) == "0000");'
+                      lambda: 'return (id(duepi_firmware).state.empty() || id(duepi_board_type).state.empty());'
                     then:
                       - lambda: id(uart_send) = 12;
                       - uart.write: "\x1bRDC00069&" #GET_FIRMWARE
+                      - wait_until:
+                          condition:
+                            lambda: 'return (id(uart_send) == 0);'
+                          timeout: 100ms
+                      - lambda: id(uart_send) = 18;
+                      - uart.write: "\x1bRC400059&" #GET_BOARD_TYPE
                       - wait_until:
                           condition:
                             lambda: 'return (id(uart_send) == 0);'
