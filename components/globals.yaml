@@ -33,6 +33,8 @@ esphome:
             id(Stove).target_temperature = 21.0;
             id(expert_tcp_bridge_connected_bs).publish_state(false);
             id(installer_status).publish_state("Installer mode off");
+            id(versie).publish_state("v26.4.1");
+            
   on_loop:
     - lambda: |-
         using esphome::binary_sensor::BinarySensor;
