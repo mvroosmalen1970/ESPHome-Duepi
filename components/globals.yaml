@@ -33,6 +33,7 @@ esphome:
             id(Stove).target_temperature = 21.0;
             id(expert_tcp_bridge_connected_bs).publish_state(false);
             id(installer_status).publish_state("Installer mode off");
+            
   on_loop:
     - lambda: |-
         using esphome::binary_sensor::BinarySensor;
@@ -475,6 +476,10 @@ globals:
      type: std::string
      restore_value: no
      initial_value: '"0000"'
+   - id: versie
+     type: std::string
+     restore_value: no
+     initial_value: '"v26.4.1"'
    - id: expert_bridge_client_connected
      type: bool
      restore_value: no
