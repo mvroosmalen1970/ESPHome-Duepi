@@ -91,7 +91,7 @@ please report any unknown codes in the debug sensor with a possible explanation 
 
 If this sounds to complicated contact me for possibilies
 
-### In Home assistent to activate custom commands for DUEPI stoves:
+### Optional in Home assistent to activate custom commands for DUEPI stoves:
   1) Create text helper <pelletkachel_command> (length 4 characters (min and max))
   2) Create automation: (with action select your esphome......write)
 ```
@@ -110,12 +110,12 @@ mode: queued
 max: 10
 ```
 Note replace **pelletkachel** in action: esphome.**pelletkachel**_write with name of ESPHome yaml<br />
-### Optional activate Official app compatibility mode:
+### Optional activate Official app compatibility mode (thanks to jbjardine):
  1) Set <img width="340" height="44" alt="image" src="https://github.com/user-attachments/assets/eb09b55d-9c77-4616-ab7e-aa74ef422038" /><br />
  2) In the MyDPRemote app: Press the setting (wheel top right), choose local and set IP address (192.168.1.xxx or pelletstove.local), port (2000) and give a name <br />
   <img width="115" height="177" alt="image" src="https://github.com/user-attachments/assets/8b293272-f4b0-4282-9289-9ecd4ac9b62d" /> <br />
 While the app is connected, Home Assistant temporarily pauses UART control and resumes automatically when the app disconnects. 
-### Optional activate installer mode:
+### Optional activate installer mode (thanks to jbjardine):
  1) Set <img width="309" height="41" alt="image" src="https://github.com/user-attachments/assets/ac82e49b-09df-4a33-9d75-7eb0ec873f45" /><br />
  2) Retreive parameter settings from your stove by running this yaml automation (or manually by entering numbers in installer parameter)
 ```
@@ -142,6 +142,7 @@ mode: single
 <img width="305" height="172" alt="image" src="https://github.com/user-attachments/assets/a27802d8-fdae-4b05-a85c-da82fff0e404" /><br />
  5) Write parameters by activating <img width="287" height="41" alt="image" src="https://github.com/user-attachments/assets/5995bbcc-d131-4f1a-a9ec-54353da5120a" /><br />
 <br />
+
 ## Confirmed working with:
 - Artel watt 9
 - Artel MeNext
