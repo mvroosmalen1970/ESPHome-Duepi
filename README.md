@@ -20,7 +20,8 @@ packages:
   duepi:
     url: https://github.com/mvroosmalen1970/ESPHome-Duepi.git
     file: components/packages.yaml
-    ref: main 
+    ref: main
+    refresh: 0d #optional to use fresh updates  
 ```
 - If you like to test a beta version change **ref: main** to **ref: mvroosmalen1970-patch-xx** in pelletstove.yaml (xx is the patch number)
 
