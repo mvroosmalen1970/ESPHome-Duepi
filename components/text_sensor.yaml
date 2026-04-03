@@ -39,6 +39,11 @@ text_sensor:
     disabled_by_default: true
     update_interval: 10s
   - platform: template
+    name: "ESPHome-Duepi - version"
+    id: versie
+    icon: 'mdi:alpha-v-circle-outline' 
+    update_interval: 6h
+  - platform: template
     name: "Duepi firmware"
     id: duepi_firmware
     icon: 'mdi:chip'
