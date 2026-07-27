@@ -367,8 +367,8 @@ esphome:
         bridge.loop();
 
 api:
-  services:
-    - service: write
+  actions:
+    - action: write
       variables:
         command: string
       then:
@@ -392,7 +392,7 @@ api:
             else:
               - lambda: |-
                   id(debug).publish_state("Official app connected: write refused");
-    - service: write_raw
+    - action: write_raw
       variables:
         payload: string
       then:
@@ -416,7 +416,7 @@ api:
             else:
               - lambda: |-
                   id(debug).publish_state("Official app connected: write_raw refused");
-    - service: read_param
+    - action: read_param
       variables:
         param: int
       then:
