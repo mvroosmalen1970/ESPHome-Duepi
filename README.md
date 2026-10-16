@@ -148,6 +148,7 @@ mode: single
 - Artel watt 9
 - Artel MeNext
 - Duroflame Rembrand
+- ETNA Cristallo Silenzio
 - Eva Calòr Thelma (DUEPI EVO VM88 Board). Maybe with some limitations
 - Qlima Viola 85 S-Line
 - Qlima Delmara 88 S-Line
