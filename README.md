@@ -79,7 +79,7 @@ substitutions:
   rx_pin_esp: '3'    #RX pin on esp module
 ```
 Compile and install on the Wemos. Connect the correct pins of the Wemos to the DEUPI board:
-![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652)
+![image](https://github.com/user-attachments/assets/2958a20d-82da-41a6-a7fe-a692134b9652) <img width="270" height="240" alt="image" src="https://github.com/user-attachments/assets/165d7668-f108-49b6-912d-1682750d8716" />
 ![image](https://github.com/user-attachments/assets/4cef9ac5-132b-4bb8-838a-5a8e09bb705e)
 ![image](https://github.com/user-attachments/assets/f2125298-5b24-4814-8c65-a8f1f51754c9) <img width="375" height="164" alt="image" src="https://github.com/user-attachments/assets/6f5d6a06-a65b-42c0-be17-6f6b2117be50" />
 
@@ -145,6 +145,7 @@ mode: single
 <br />
 
 ## Confirmed working with:
+- Adler hydro 25
 - Artel watt 9
 - Artel MeNext
 - Duroflame Rembrand
