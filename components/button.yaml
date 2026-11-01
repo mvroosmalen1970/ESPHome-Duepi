@@ -1,0 +1,18 @@
+button:
+  # Fan speed steps for MQTT discovery clients without number support (Gladys)
+  - platform: template
+    name: "Fan speed up"
+    id: fan_speed_up
+    icon: "mdi:fan-plus"
+    on_press:
+      - number.increment:
+          id: fan_speed_number
+          cycle: false
+  - platform: template
+    name: "Fan speed down"
+    id: fan_speed_down
+    icon: "mdi:fan-minus"
+    on_press:
+      - number.decrement:
+          id: fan_speed_number
+          cycle: false

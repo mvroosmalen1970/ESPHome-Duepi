@@ -14,6 +14,7 @@ sensor:
   - platform: template
     name: "error code"
     id: error_code
+    state_class: measurement
     accuracy_decimals: 0
     filters:
       - round: 0
@@ -55,12 +56,25 @@ sensor:
   - platform: template
     name: "pellet speed"
     id: pellet_speed
+    state_class: measurement
     accuracy_decimals: 0
     filters:
       - round: 0
   - platform: template
     name: "power level"
     id: power_level
+    state_class: measurement
     accuracy_decimals: 0
     filters:
       - round: 0
+  # Fan speed setting (1-5) as a sensor, for MQTT discovery clients without number support (Gladys)
+  - platform: template
+    name: "Fan speed setting"
+    id: fan_speed_setting
+    icon: "mdi:fan"
+    state_class: measurement
+    accuracy_decimals: 0
+    update_interval: 2s
+    lambda: 'return id(fan_mode);'
+    filters:
+      - delta: 0.5

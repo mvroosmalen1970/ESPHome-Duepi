@@ -4,3 +4,12 @@ binary_sensor:
     id: expert_tcp_bridge_connected_bs
     device_class: connectivity
     entity_category: diagnostic
+  # Hopper seal as a binary state, for MQTT discovery clients without text sensor support (Gladys)
+  - platform: template
+    name: "Pellet hopper pressure loss"
+    id: hopper_pressure_loss
+    device_class: problem
+    lambda: |-
+      if (id(pressure_switch_status).state == "Pressure loss") return true;
+      if (id(pressure_switch_status).state == "Sealed") return false;
+      return {};
