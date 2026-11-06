@@ -157,66 +157,18 @@ uart:
                   int err_code = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
                   id(error_code).publish_state(err_code);
                   id(uart_send) = 1;
-                  switch(err_code) {
-                    case 0: { break; }
-                    case 1: {
-                      id(burner_status).publish_state("Ignition failure");
-                      break;
-                      }
-                    case 2: {
-                      id(burner_status).publish_state("Defective suction");
-                      break;
-                      }
-                    case 3: {
-                      id(burner_status).publish_state("Insufficient air intake");
-                      break;
-                      }
-                    case 4: {
-                      id(burner_status).publish_state("Water temperature");
-                      break;
-                      }
-                    case 5: {
-                      id(burner_status).publish_state("Out of pellets");
-                      break;
-                      }
-                    case 6: {
-                      id(burner_status).publish_state("Defective pressure switch");
-                      break;
-                      }
-                    case 7: {
-                      id(burner_status).publish_state("Unknown");
-                      break;
-                      }
-                    case 8: {
-                      id(burner_status).publish_state("No current");
-                      break;
-                      }
-                    case 9: {
-                      id(burner_status).publish_state("Exhaust motor failure");
-                      break;
-                      }
-                    case 10: {
-                      id(burner_status).publish_state("Card surge");
-                      break;
-                      }
-                    case 11: {
-                      id(burner_status).publish_state("Date expired");
-                      break;
-                      }
-                    case 12: {
-                      id(burner_status).publish_state("Unknown");
-                      break;
-                      }
-                    case 13: {
-                      id(burner_status).publish_state("Suction regulating sensor error");
-                      break;
-                      }
-                    case 14: {
-                      id(burner_status).publish_state("Overheating");
-                      break;
-                      }
-                    default: id(burner_status).publish_state("Unknown Error " + std::to_string(err_code));
-                  }
+                  // Errors go to their own sensor so burner_status keeps the phase
+                  // instead of alternating with the error text every poll.
+                  static const char *const ERROR_TEXT[] = {
+                      "OK", "Ignition failure", "Defective suction", "Insufficient air intake",
+                      "Water temperature", "Out of pellets", "Defective pressure switch", "Unknown",
+                      "No current", "Exhaust motor failure", "Card surge", "Date expired", "Unknown",
+                      "Suction regulating sensor error", "Overheating"};
+                  const std::string error_text = (err_code >= 0 && err_code <= 14)
+                                                     ? std::string(ERROR_TEXT[err_code])
+                                                     : "Unknown Error " + std::to_string(err_code);
+                  if (!id(stove_error).has_state() || id(stove_error).state != error_text)
+                    id(stove_error).publish_state(error_text);
                   id(uart_send) = 1;
                   break;
                 }

@@ -4,6 +4,10 @@ text_sensor:
     id: "burner_status"
     update_interval: 10s
   - platform: template
+    name: "stove error"
+    id: "stove_error"
+    icon: mdi:alert-circle-outline
+  - platform: template
     name: "debug"
     id: "debug"
     entity_category: diagnostic
