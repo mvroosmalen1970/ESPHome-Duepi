@@ -135,11 +135,25 @@ uart:
                 case 4: {
                   id(pellet_speed).publish_state(std::stoi(data_from_server.substr(1, 4), nullptr, 16));
                   id(fan_mode) = std::stoi(data_from_server.substr(1, 4), nullptr, 16);
-                  if (id(fan_mode) == 1) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_QUIET).perform(); }
-                  else if (id(fan_mode) == 2) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_LOW).perform(); }
-                  else if (id(fan_mode) == 3) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MIDDLE).perform(); }
-                  else if (id(fan_mode) == 4) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_MEDIUM).perform(); }
-                  else if (id(fan_mode) == 5) { id(Stove).make_call().set_fan_mode(ClimateFanMode::CLIMATE_FAN_HIGH).perform(); }
+                  // Mirror the stove fan level only when it changes, and under the
+                  // sync guard: each call refreshes the thermostat, and its first
+                  // refresh after boot fires target_temperature_change_action
+                  // (previous target is NaN), which would send the restored target
+                  // back to the stove as if the user had changed it.
+                  {
+                    static const ClimateFanMode FAN_BY_LEVEL[] = {
+                        ClimateFanMode::CLIMATE_FAN_QUIET, ClimateFanMode::CLIMATE_FAN_LOW,
+                        ClimateFanMode::CLIMATE_FAN_MIDDLE, ClimateFanMode::CLIMATE_FAN_MEDIUM,
+                        ClimateFanMode::CLIMATE_FAN_HIGH};
+                    if (id(fan_mode) >= 1 && id(fan_mode) <= 5) {
+                      const ClimateFanMode wanted = FAN_BY_LEVEL[id(fan_mode) - 1];
+                      if (!id(Stove).fan_mode.has_value() || *id(Stove).fan_mode != wanted) {
+                        id(climate_sync_in_progress) = true;
+                        id(Stove).make_call().set_fan_mode(wanted).perform();
+                        id(climate_sync_in_progress) = false;
+                      }
+                    }
+                  }
                   id(uart_send) = 1;
                   break;
                 }
