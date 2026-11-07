@@ -151,6 +151,7 @@ mode: single
 - Duroflame Rembrand
 - ETNA Cristallo Silenzio
 - Eva Calòr Thelma (DUEPI EVO VM88 Board). Maybe with some limitations
+- King Mini 5S
 - Qlima Viola 85 S-Line
 - Qlima Delmara 88 S-Line
 - Interstove Milano
