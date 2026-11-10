@@ -23,7 +23,7 @@ uart:
             }
             if (data_from_server.empty() || data_from_server.back() != '&') {
               rx_acc += data_from_server;
-              if (rx_acc.size() > 600) { rx_acc.clear(); }
+              if (rx_acc.size() > 250) { rx_acc.clear(); }
               return;
             }
             if (!rx_acc.empty()) {
