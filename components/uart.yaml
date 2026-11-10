@@ -290,6 +290,8 @@ uart:
                     status = "Sealed";
                   } else if (inputs_state == "0300") {
                     status = "Pressure loss";
+                  } else if (inputs_state == "0800") {
+                    status = "Ok (Standby)";
                   } else {
                     status = "Unknown " + inputs_state;
                     id(debug).publish_state("Unknown hopper seal state :" + data_from_server);
