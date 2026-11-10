@@ -16,6 +16,23 @@ uart:
             UARTDebug::log_string(direction, bytes);
             //Convert uart text to string
             std::string data_from_server(bytes.begin(), bytes.end());
+            // Firmware 9.3.x : réponses d'environ 218 octets reçues en plusieurs fragments
+            static std::string rx_acc;
+            if (!data_from_server.empty() && data_from_server.front() == 0x1B) {
+              rx_acc.clear();
+            }
+            if (data_from_server.empty() || data_from_server.back() != '&') {
+              rx_acc += data_from_server;
+              if (rx_acc.size() > 600) { rx_acc.clear(); }
+              return;
+            }
+            if (!rx_acc.empty()) {
+              data_from_server = rx_acc + data_from_server;
+              rx_acc.clear();
+            }
+            if (data_from_server.length() > 10 && data_from_server.front() == 0x1B) {
+              data_from_server = data_from_server.substr(0, 7) + data_from_server.substr(data_from_server.length() - 3);
+            }
             std::string status;
             unsigned int checksum = 0;
             if (id(uart_send) == 10) {
