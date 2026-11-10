@@ -14,10 +14,38 @@ uart:
     sequence:
       - lambda: |-
             UARTDebug::log_string(direction, bytes);
-            //Convert uart text to string
+            // Convert uart text to string
             std::string data_from_server(bytes.begin(), bytes.end());
-            std::string status;
-            unsigned int checksum = 0;
+            // Buffer for firmware 9.3.x
+            static std::string rx_acc;
+            static uint32_t last_fragment_time = 0;
+            uint32_t now = millis();
+            // Safety check, Clear buffer if previous fragment > 200ms
+            if (!rx_acc.empty() && (now - last_fragment_time > 200)) {
+              ESP_LOGW("uart_buffer", "Clear buffer due to time out (%d ms)", now - last_fragment_time);
+              rx_acc.clear();
+            }
+            last_fragment_time = now;
+            // Start new frame (0x1B is ESC)
+            if (!data_from_server.empty() && data_from_server.front() == 0x1B) {
+              rx_acc.clear();
+            }
+            if (data_from_server.empty() || data_from_server.back() != '&') {
+              rx_acc += data_from_server;
+              // Limit data in case of corrupt data
+              if (rx_acc.size() > 250) { 
+                rx_acc.clear(); 
+              }
+              return;
+            }
+            if (!rx_acc.empty()) {
+              data_from_server = rx_acc + data_from_server;
+              rx_acc.clear();
+            }
+            // 10-byte transformation for firmware 9.3.x useable upstream
+            if (data_from_server.length() > 10 && data_from_server.front() == 0x1B) {
+              data_from_server = data_from_server.substr(0, 7) + data_from_server.substr(data_from_server.length() - 3);
+            }
             if (id(uart_send) == 10) {
               // In raw/debug mode, always expose the frame we got back even if it
               // does not match the fixed 10-byte parser used by the runtime flow.
@@ -46,7 +74,9 @@ uart:
               id(uart_send) = 0;
               return;
             }
+            std::string status;
             status=data_from_server.substr(1, 6);
+            unsigned int checksum = 0;
             for (size_t i = 0; i < status.size(); i++) {
               checksum += static_cast<unsigned char>(status[i]);
             }
@@ -260,6 +290,8 @@ uart:
                     status = "Sealed";
                   } else if (inputs_state == "0300") {
                     status = "Pressure loss";
+                  } else if (inputs_state == "0800") {
+                    status = "Ok (Standby)";
                   } else {
                     status = "Unknown " + inputs_state;
                     id(debug).publish_state("Unknown hopper seal state :" + data_from_server);
