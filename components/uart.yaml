@@ -22,7 +22,7 @@ uart:
             uint32_t now = millis();
             // Safety check, Clear buffer if previous fragment > 200ms
             if (!rx_acc.empty() && (now - last_fragment_time > 200)) {
-              ESP_LOGW("uart_buffer", "Buffer gewist wegens timeout tussen fragmenten (%d ms)", now - last_fragment_time);
+              ESP_LOGW("uart_buffer", "Clear buffer due to time out (%d ms)", now - last_fragment_time);
               rx_acc.clear();
             }
             last_fragment_time = now;
