@@ -22,7 +22,7 @@ sensor:
     filters:
       - round: 0
   - platform: template
-    name: "flu gas temperature"
+    name: "flue gas temperature"
     id: flu_gas_temp
     unit_of_measurement: "°C"
     device_class: "temperature"

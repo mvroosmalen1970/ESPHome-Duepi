@@ -444,7 +444,7 @@ api:
                     - script.execute:
                         id: UART_RAW_CMD
                         payload_in: !lambda |-
-                          return str_sprintf("L%02X000", param & 0xFF);
+                          return str_sprintf("L%02X000", (unsigned int)(param & 0xFF));
                     - script.wait: UART_RAW_CMD
                     - wait_until:
                         condition:
